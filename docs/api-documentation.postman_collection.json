@@ -107,6 +107,26 @@
       }
     },
     {
+      "name": "Posts - List Posts with Author Info",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/posts?select=*,author:members(id,first_name,last_name,profile_image_url)&order=created_at.desc&limit=5",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "posts"],
+          "query": [
+            { "key": "select", "value": "*,author:members(id,first_name,last_name,profile_image_url)" },
+            { "key": "order", "value": "created_at.desc" },
+            { "key": "limit", "value": "5" }
+          ]
+        }
+      }
+    },
+    {
       "name": "Posts - Create Post",
       "request": {
         "method": "POST",
@@ -127,6 +147,25 @@
       }
     },
     {
+      "name": "Posts - Get Single Post with Author",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/posts?id=eq.{{POST_ID}}&select=*,author:members(id,first_name,last_name,profile_image_url)",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "posts"],
+          "query": [
+            { "key": "id", "value": "eq.{{POST_ID}}" },
+            { "key": "select", "value": "*,author:members(id,first_name,last_name,profile_image_url)" }
+          ]
+        }
+      }
+    },
+    {
       "name": "Comments - List Comments for Post",
       "request": {
         "method": "GET",
@@ -140,6 +179,26 @@
           "path": ["rest", "v1", "comments"],
           "query": [
             { "key": "post_id", "value": "eq.{{POST_ID}}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Comments - List Comments with Author Info",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/comments?post_id=eq.{{POST_ID}}&select=*,author:members(id,first_name,last_name,profile_image_url)&order=created_at.asc",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "comments"],
+          "query": [
+            { "key": "post_id", "value": "eq.{{POST_ID}}" },
+            { "key": "select", "value": "*,author:members(id,first_name,last_name,profile_image_url)" },
+            { "key": "order", "value": "created_at.asc" }
           ]
         }
       }
@@ -178,6 +237,25 @@
           "path": ["rest", "v1", "announcements"],
           "query": [
             { "key": "select", "value": "*" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Announcements - List with Author Info",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/announcements?select=*,author:members(id,first_name,last_name,profile_image_url)&order=created_at.desc",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "announcements"],
+          "query": [
+            { "key": "select", "value": "*,author:members(id,first_name,last_name,profile_image_url)" },
+            { "key": "order", "value": "created_at.desc" }
           ]
         }
       }

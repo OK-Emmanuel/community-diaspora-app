@@ -254,3 +254,46 @@ Added missing Row Level Security (RLS) policies for the `non_financial_members` 
 5. Admins can view all dependents
 
 This fixes the 403 Forbidden error when adding dependents.
+
+---
+
+## Fixed Field Naming Discrepancies in Content Management System
+
+We encountered an issue where the frontend code was using field names that didn't match the actual database schema. This caused errors when fetching posts and displaying author information.
+
+### Identified Issues:
+1. Frontend code was using `avatar_url` while the database had `profile_image_url`
+2. Frontend was expecting `full_name` but the database had separate `first_name` and `last_name` fields
+3. Handling of empty/null values wasn't robust enough
+
+### Implemented Fixes:
+
+1. **Updated API Queries**:
+   - Modified all Supabase queries in `api.ts` to use the correct field names:
+     - Changed `avatar_url` to `profile_image_url` in member queries
+     - Used `first_name` and `last_name` instead of `full_name`
+
+2. **Updated TypeScript Interfaces**:
+   - Updated all interfaces in `database.ts` to reflect the actual database schema
+   - Changed `PostWithAuthor`, `CommentWithAuthor`, and `AnnouncementWithAuthor` interfaces
+   - Updated `User` and `Dependent` interfaces for consistency
+
+3. **Improved Frontend Components**:
+   - Added helper functions to properly format author names by combining `first_name` and `last_name`
+   - Enhanced error handling for missing profile images
+   - Added fallbacks for missing author information
+   - Improved empty state handling for the feed page
+
+4. **Added Robust Error Handling**:
+   - Implemented error handling for image loading failures
+   - Added null/undefined checks throughout the code
+   - Made helper functions more robust to handle edge cases
+
+These changes have resolved the database field mismatch errors and improved the overall robustness of the application. The feed page now properly displays posts with author information and gracefully handles edge cases where data might be missing.
+
+Key files updated:
+- `src/lib/api.ts`: Updated queries to use correct field names
+- `src/types/database.ts`: Updated interfaces to match database schema
+- `src/app/feed/page.tsx`: Added robust error handling and helper functions
+- `src/app/feed/post/[id]/page.tsx`: Improved error handling and display
+- `src/app/page.tsx`: Updated announcement author display
