@@ -3,7 +3,7 @@
     "_postman_id": "diaspora-community-app-api",
     "name": "Diaspora Community App API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Postman collection for Diaspora Community App backend (Supabase REST API). Set your environment variables for SUPABASE_URL and SUPABASE_ANON_KEY."
+    "description": "Postman collection for Diaspora Community App backend (Supabase REST API). Set your environment variables for SUPABASE_URL and SUPABASE_ANON_KEY. IMPORTANT: Always include both apikey and Authorization headers in your requests to avoid 401 errors."
   },
   "item": [
     {
@@ -11,7 +11,8 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" }
         ],
         "url": {
           "raw": "{{SUPABASE_URL}}/auth/v1/signup",
@@ -29,7 +30,8 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" }
         ],
         "url": {
           "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
@@ -251,6 +253,38 @@
           "query": [
             { "key": "select", "value": "*,non_financial_members(*)" }
           ]
+        }
+      }
+    },
+    {
+      "name": "Debug - Check Cookies",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/debug-cookies",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "debug-cookies"]
+        }
+      }
+    },
+    {
+      "name": "Debug - Get Member via API",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/member",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "member"]
         }
       }
     }
