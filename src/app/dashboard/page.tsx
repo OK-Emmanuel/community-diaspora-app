@@ -217,7 +217,7 @@ export default function DashboardPage() {
                   <div className="bg-gray-50 px-5 py-3">
                     <div className="text-sm">
                       <button
-                        onClick={() => router.push('/profile/add-dependant')}
+                        onClick={() => router.push('/profile')}
                         className="font-medium text-blue-700 hover:text-blue-900"
                       >
                         Manage dependents

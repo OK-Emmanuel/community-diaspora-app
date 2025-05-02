@@ -305,4 +305,60 @@ END;
 $$ language plpgsql;
 
 -- Replace existing members insert policy
-DROP POLICY IF EXISTS "Members can insert their own profile" ON members; 
+DROP POLICY IF EXISTS "Members can insert their own profile" ON members;
+
+-- Non-financial members policies
+CREATE POLICY "Members can view their own dependents"
+    ON non_financial_members FOR SELECT
+    USING (member_id = auth.uid());
+
+CREATE POLICY "Admins can view all dependents"
+    ON non_financial_members FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM members
+            WHERE id = auth.uid()
+            AND role = 'admin'
+        )
+    );
+
+CREATE POLICY "Financial members can add dependents"
+    ON non_financial_members FOR INSERT
+    WITH CHECK (
+        member_id = auth.uid() AND
+        EXISTS (
+            SELECT 1 FROM members
+            WHERE id = auth.uid()
+            AND role = 'financial'
+        )
+    );
+
+CREATE POLICY "Financial members can update their own dependents"
+    ON non_financial_members FOR UPDATE
+    USING (
+        member_id = auth.uid() AND
+        EXISTS (
+            SELECT 1 FROM members
+            WHERE id = auth.uid()
+            AND role = 'financial'
+        )
+    )
+    WITH CHECK (
+        member_id = auth.uid() AND
+        EXISTS (
+            SELECT 1 FROM members
+            WHERE id = auth.uid()
+            AND role = 'financial'
+        )
+    );
+
+CREATE POLICY "Financial members can delete their dependents"
+    ON non_financial_members FOR DELETE
+    USING (
+        member_id = auth.uid() AND
+        EXISTS (
+            SELECT 1 FROM members
+            WHERE id = auth.uid()
+            AND role = 'financial'
+        )
+    ); 

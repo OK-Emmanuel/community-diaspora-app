@@ -237,3 +237,20 @@ Key files updated:
 - `src/app/api/member/route.ts`: Robust server-side API endpoint
 - `src/app/debug/page.tsx`: Debug tools and diagnostics
 - `src/app/api/debug-cookies/route.ts`: Cookie inspection endpoint
+
+### Profile Management Implementation
+- Created complete profile view/edit functionality
+- Implemented dependent management for financial members
+- Fixed RLS policies to allow financial members to properly manage their dependents
+- Added role-based access controls
+
+### RLS Policy Fix (Today)
+Added missing Row Level Security (RLS) policies for the `non_financial_members` table to allow financial members to properly manage their dependents. The policies ensure that:
+
+1. Financial members can view their own dependents
+2. Financial members can add new dependents
+3. Financial members can update their own dependents
+4. Financial members can delete their own dependents
+5. Admins can view all dependents
+
+This fixes the 403 Forbidden error when adding dependents.

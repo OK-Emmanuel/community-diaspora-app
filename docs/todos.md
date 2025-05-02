@@ -1,6 +1,6 @@
 # Diaspora Community App - Development TODOs
 
-## 🎯 Phase 1: Project Setup & Authentication
+## Phase 1: Project Setup & Authentication
 ### Project Initialization
 - [x] Initialize Next.js project with TypeScript
 - [x] Set up Tailwind CSS
@@ -39,12 +39,12 @@
 - [x] Set up debugging tools for authentication
 - [x] Fix 401 "No API key found in request" error
 
-## 🎯 Phase 2: Core Features
+## Phase 2: Core Features
 ### User Management
-- [ ] Create member profile pages
-  - [ ] View profile
-  - [ ] Edit profile
-  - [ ] Add dependants
+- [x] Create member profile pages
+  - [x] View profile
+  - [x] Edit profile
+  - [x] Add dependants
 - [x] Implement role-based access control
 - [ ] Create admin panel for member management
 
@@ -67,7 +67,7 @@
   - [ ] Notification display
   - [ ] Mark as read functionality
 
-## 🎯 Phase 3: UI/UX Development
+## Phase 3: UI/UX Development
 ### Components
 - [ ] Create shared components:
   - [ ] Navigation bar
@@ -85,13 +85,13 @@
   - [x] Landing page
   - [x] Dashboard
   - [ ] Feed
-  - [ ] Profile pages
+  - [x] Profile pages
   - [ ] Admin panel
   - [ ] Announcements page
   - [ ] Notifications page
   - [x] Debug page for testing
 
-## 🎯 Phase 4: Testing & Optimization
+## Phase 4: Testing & Optimization
 - [ ] Write unit tests
 - [ ] Add integration tests
 - [x] Perform security audit
@@ -107,7 +107,7 @@
   - [ ] User actions
   - [ ] Performance metrics
 
-## 🎯 Phase 5: Deployment & Documentation
+## Phase 5: Deployment & Documentation
 - [ ] Set up CI/CD pipeline
 - [ ] Configure production environment
 - [ ] Deploy to Vercel
@@ -118,7 +118,7 @@
 
 ## Priority Order for Development:
 1. Project setup and authentication (done)
-2. Member management system
+2. Member management system (done)
 3. Core content features (posts, comments)
 4. Admin functionality
 5. Notifications system
