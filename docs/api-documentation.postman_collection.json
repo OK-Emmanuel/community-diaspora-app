@@ -1,0 +1,267 @@
+{
+  "info": {
+    "_postman_id": "diaspora-community-app-api",
+    "name": "Diaspora Community App API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for Diaspora Community App backend (Supabase REST API). Set your environment variables for SUPABASE_URL and SUPABASE_ANON_KEY."
+  },
+  "item": [
+    {
+      "name": "Auth - Sign Up",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/auth/v1/signup",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["auth", "v1", "signup"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{EMAIL}}\",\n  \"password\": \"{{PASSWORD}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Sign In",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["auth", "v1", "token"],
+          "query": [
+            { "key": "grant_type", "value": "password" }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{EMAIL}}\",\n  \"password\": \"{{PASSWORD}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Members - Get Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/members?id=eq.{{USER_ID}}",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "members"],
+          "query": [
+            { "key": "id", "value": "eq.{{USER_ID}}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Members - Update Profile",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/members?id=eq.{{USER_ID}}",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "members"],
+          "query": [
+            { "key": "id", "value": "eq.{{USER_ID}}" }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"NewName\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Posts - List Posts",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/posts?select=*",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "posts"],
+          "query": [
+            { "key": "select", "value": "*" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Posts - Create Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/posts",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "posts"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"author_id\": \"{{USER_ID}}\",\n  \"title\": \"Test Post\",\n  \"content\": \"This is a test post.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Comments - List Comments for Post",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/comments?post_id=eq.{{POST_ID}}",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "comments"],
+          "query": [
+            { "key": "post_id", "value": "eq.{{POST_ID}}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Comments - Add Comment",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/comments",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "comments"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"post_id\": \"{{POST_ID}}\",\n  \"author_id\": \"{{USER_ID}}\",\n  \"content\": \"This is a comment.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Announcements - List Announcements",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/announcements?select=*",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "announcements"],
+          "query": [
+            { "key": "select", "value": "*" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Announcements - Create Announcement",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/announcements",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "announcements"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"author_id\": \"{{USER_ID}}\",\n  \"title\": \"Announcement Title\",\n  \"content\": \"Announcement body.\",\n  \"type\": \"general\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Events - List Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/events?select=*",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "events"],
+          "query": [
+            { "key": "select", "value": "*" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Contributions - List My Contributions",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/contributions?member_id=eq.{{USER_ID}}",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "contributions"],
+          "query": [
+            { "key": "member_id", "value": "eq.{{USER_ID}}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin - List All Members",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/rest/v1/members?select=*,non_financial_members(*)",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["rest", "v1", "members"],
+          "query": [
+            { "key": "select", "value": "*,non_financial_members(*)" }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "SUPABASE_URL", "value": "https://zsmappumrdykdvnbvpix.supabase.co" },
+    { "key": "SUPABASE_ANON_KEY", "value": "<your-anon-key>" },
+    { "key": "EMAIL", "value": "" },
+    { "key": "PASSWORD", "value": "" },
+    { "key": "USER_ID", "value": "" },
+    { "key": "JWT", "value": "" },
+    { "key": "POST_ID", "value": "" }
+  ]
+} 

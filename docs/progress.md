@@ -39,3 +39,40 @@ I've created a comprehensive SQL schema that expands upon the basic structure me
 - Admins have special privileges for announcements and events
 - Users can only view their own notifications and contributions
 - Added proper policies for event registrations
+
+I've set up:
+- TypeScript Types (src/types/database.ts):
+  - All database table interfaces
+  - Custom type definitions
+  - Proper type safety for all operations
+- Authentication Context (src/lib/auth.ts):
+  - Complete auth flow (signup, signin, signout)
+  - Profile management
+  - Role-based access control
+  - Route protection hook
+- API Utilities (src/lib/api.ts):
+  - Organized by feature (members, posts, announcements, etc.)
+  - Type-safe database operations
+  - Error handling
+  - Proper data relationships
+
+
+A ready-to-use Postman collection has been created at docs/api-documentation.postman_collection.json.
+This collection includes endpoints for:
+- Auth (Sign Up, Sign In)
+- Members (Get/Update Profile)
+- Posts (List/Create)
+- Comments (List/Add)
+- Announcements (List/Create)
+- Events (List)
+- Contributions (List)
+- Admin (List All Members)
+
+How to use:
+- Import the collection into Postman.
+- Set the variables:
+`SUPABASE_URL` (your project URL)
+`SUPABASE_ANON_KEY` (your anon key)
+`EMAIL`, `PASSWORD` (for auth)
+`USER_ID`, `JWT`, `POST_ID` (as needed for requests)
+- Use the endpoints to test your backend and API.
