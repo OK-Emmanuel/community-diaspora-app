@@ -67,7 +67,7 @@ export const postsApi = {
       .from('posts')
       .select(`
         *,
-        author:members(first_name, last_name, profile_image_url)
+        author:members(id, first_name, last_name, profile_image_url)
       `)
       .order('created_at', { ascending: false })
       .range(from, to);
@@ -87,12 +87,21 @@ export const postsApi = {
     return data;
   },
 
+  async likePost(postId: string, likesCount: number) {
+    const { error } = await supabase
+      .from('posts')
+      .update({ likes_count: likesCount })
+      .eq('id', postId);
+      
+    return { error };
+  },
+
   async getComments(postId: string) {
     const { data, error } = await supabase
       .from('comments')
       .select(`
         *,
-        author:members(first_name, last_name, profile_image_url)
+        author:members(id, first_name, last_name, profile_image_url)
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: true });
@@ -120,7 +129,7 @@ export const announcementsApi = {
       .from('announcements')
       .select(`
         *,
-        author:members(first_name, last_name)
+        author:members(id, first_name, last_name, profile_image_url)
       `)
       .order('created_at', { ascending: false });
     
