@@ -19,6 +19,9 @@
   - [ ] comments
   - [ ] announcements
   - [ ] notifications
+  - [ ] events
+  - [ ] event_registration
+  - [ ] contributions
   - [ ] sessions
 - [ ] Configure Row Level Security (RLS)
 
