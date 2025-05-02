@@ -80,7 +80,7 @@ export default function EditMemberPage({ params }: { params: { id: string } }) {
       const updateData: Partial<Member> = {
         ...formData,
         // Format date fields properly
-        date_of_birth: formData.date_of_birth ? new Date(formData.date_of_birth) : null,
+        date_of_birth: formData.date_of_birth ? new Date(formData.date_of_birth) : undefined,
       };
       
       // Remove id and timestamps from update data
