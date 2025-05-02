@@ -8,3 +8,7 @@ package-lock.json
 package-lock.json
 .next
 
+.cursorrules
+.cursorignore
+.cursor/
+temp/

@@ -162,9 +162,10 @@ CREATE POLICY "Members can update own profile"
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "Members can insert their own profile"
+CREATE POLICY "New users can create their profile"
     ON members FOR INSERT
-    WITH CHECK (auth.uid() = id);
+    TO authenticated, anon
+    WITH CHECK (true);
 
 -- Posts policies
 CREATE POLICY "Anyone can view posts"
@@ -291,4 +292,17 @@ CREATE TRIGGER update_posts_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Add more triggers as needed for other tables 
+-- Add more triggers as needed for other tables
+
+-- Create function to verify if authenticated user owns the record
+CREATE OR REPLACE FUNCTION auth.is_jwt_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (SELECT role = 'admin' FROM members WHERE id = auth.uid());
+EXCEPTION
+  WHEN OTHERS THEN RETURN false;
+END;
+$$ language plpgsql;
+
+-- Replace existing members insert policy
+DROP POLICY IF EXISTS "Members can insert their own profile" ON members; 
