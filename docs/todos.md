@@ -46,7 +46,7 @@
   - [x] Edit profile
   - [x] Add dependants
 - [x] Implement role-based access control
-- [ ] Create admin panel for member management
+- [x] Create admin panel for member management
 
 ### Content Management
 - [ ] Implement post creation and management

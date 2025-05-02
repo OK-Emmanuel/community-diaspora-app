@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { membersApi } from '@/lib/api';
 import type { NonFinancialMember } from '@/types/database';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user, signOut, isAdmin, isFinancialMember } = useAuth();
@@ -73,6 +74,14 @@ export default function DashboardPage() {
               >
                 Sign out
               </button>
+              {isAdmin() && (
+                <Link
+                  href="/admin"
+                  className="ml-4 px-3 py-1 rounded-md text-sm font-medium text-purple-700 hover:text-purple-900 hover:bg-purple-50"
+                >
+                  Admin Panel
+                </Link>
+              )}
             </div>
           </div>
         </div>
