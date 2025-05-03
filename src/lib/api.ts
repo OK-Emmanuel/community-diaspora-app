@@ -9,6 +9,7 @@ import type {
   EventRegistration,
   Contribution,
 } from '@/types/database';
+import { createNotification } from './notifications';
 
 // Members API
 export const membersApi = {
@@ -87,12 +88,27 @@ export const postsApi = {
     return data;
   },
 
-  async likePost(postId: string, likesCount: number) {
+  async likePost(postId: string, likesCount: number, actorId: string) {
     const { error } = await supabase
       .from('posts')
       .update({ likes_count: likesCount })
       .eq('id', postId);
-      
+
+    const { data: post } = await supabase
+      .from('posts')
+      .select('author_id, title')
+      .eq('id', postId)
+      .single();
+
+    if (post && post.author_id !== actorId) {
+      await createNotification({
+        member_id: post.author_id,
+        title: 'New Like on Your Post',
+        content: 'Someone liked your post: ' + post.title,
+        type: 'like',
+        link: `/feed/post/${postId}`,
+      });
+    }
     return { error };
   },
 
@@ -110,13 +126,49 @@ export const postsApi = {
     return data;
   },
 
-  async addComment(comment: Omit<Comment, 'id' | 'created_at' | 'updated_at' | 'likes_count'>) {
+  async addComment(comment: Omit<Comment, 'id' | 'created_at' | 'updated_at' | 'likes_count'>, actorId: string) {
     const { data, error } = await supabase
       .from('comments')
       .insert([comment])
       .select()
       .single();
-    
+
+    const { data: post } = await supabase
+      .from('posts')
+      .select('author_id, title')
+      .eq('id', comment.post_id)
+      .single();
+
+    if (post && post.author_id !== actorId) {
+      await createNotification({
+        member_id: post.author_id,
+        title: 'New Comment on Your Post',
+        content: 'Someone commented on your post: ' + post.title,
+        type: 'comment',
+        link: `/feed/post/${comment.post_id}`,
+      });
+    }
+
+    if (comment.parent_comment_id) {
+      const { data: parentComment } = await supabase
+        .from('comments')
+        .select('author_id')
+        .eq('id', comment.parent_comment_id)
+        .single();
+      if (
+        parentComment &&
+        parentComment.author_id !== actorId &&
+        (!post || parentComment.author_id !== post.author_id)
+      ) {
+        await createNotification({
+          member_id: parentComment.author_id,
+          title: 'Reply to Your Comment',
+          content: 'Someone replied to your comment.',
+          type: 'reply',
+          link: `/feed/post/${comment.post_id}`,
+        });
+      }
+    }
     if (error) throw error;
     return data;
   }
@@ -243,5 +295,53 @@ export const adminApi = {
     
     if (error) throw error;
     return data;
+  }
+};
+
+// Notifications API
+export const notificationsApi = {
+  async getNotifications(userId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('member_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async markAsRead(notificationId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async markAllAsRead(userId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('member_id', userId)
+      .eq('is_read', false);
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getUnreadCount(userId: string) {
+    const { count, error } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('member_id', userId)
+      .eq('is_read', false);
+    
+    if (error) throw error;
+    return count || 0;
   }
 }; 

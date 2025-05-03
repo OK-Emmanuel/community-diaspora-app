@@ -80,18 +80,15 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   };
 
   const handleLike = async () => {
-    if (!post) return;
-    
+    if (!post || !user) return;
     try {
       // Optimistically update the UI
       setPost({
         ...post,
         likes_count: post.likes_count + 1
       });
-      
       // Update in the database
-      const { error } = await postsApi.likePost(post.id, post.likes_count + 1);
-      
+      const { error } = await postsApi.likePost(post.id, post.likes_count + 1, user.id);
       if (error) throw error;
     } catch (err) {
       console.error('Error liking post:', err);
@@ -107,20 +104,16 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!post || !user) return;
     if (!newComment.trim()) return;
-    
     setIsSubmitting(true);
-    
     try {
       // Add the comment
       await postsApi.addComment({
         post_id: post.id,
         author_id: user.id,
         content: newComment
-      });
-      
+      }, user.id);
       // Refresh post and comments
       fetchPostAndComments();
       setNewComment('');

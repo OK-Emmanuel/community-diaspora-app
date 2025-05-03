@@ -58,6 +58,7 @@ export default function FeedPage() {
   };
 
   const handleLike = async (postId: string) => {
+    if (!user) return;
     try {
       // Find the post in the state
       const postIndex = posts.findIndex(post => post.id === postId);
@@ -69,7 +70,7 @@ export default function FeedPage() {
       setPosts(updatedPosts);
       
       // Update the post likes in the database
-      const { error } = await postsApi.likePost(postId, updatedPosts[postIndex].likes_count);
+      const { error } = await postsApi.likePost(postId, updatedPosts[postIndex].likes_count, user.id);
       
       if (error) throw error;
     } catch (err) {

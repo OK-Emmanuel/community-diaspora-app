@@ -226,6 +226,15 @@ CREATE POLICY "Users can view their own notifications"
     ON notifications FOR SELECT
     USING (member_id = auth.uid());
 
+CREATE POLICY "Users can insert their own notifications"
+    ON notifications FOR INSERT
+    WITH CHECK (member_id = auth.uid());
+
+CREATE POLICY "Users can update their own notifications"
+    ON notifications FOR UPDATE
+    USING (member_id = auth.uid())
+    WITH CHECK (member_id = auth.uid());
+
 -- Events policies
 CREATE POLICY "Anyone can view events"
     ON events FOR SELECT

@@ -88,6 +88,7 @@ export interface Comment {
   post_id: string;
   author_id: string;
   content: string;
+  parent_comment_id?: string;
   created_at: string;
   updated_at: string;
 }

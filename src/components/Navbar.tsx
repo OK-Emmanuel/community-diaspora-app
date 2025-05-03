@@ -4,16 +4,34 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { notificationsApi } from '@/lib/api';
 
 export default function Navbar() {
   const { user, signOut, loading, isAdmin } = useAuth();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   // Close the mobile menu when navigating to a new page
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
+
+  // Fetch unread notifications count
+  useEffect(() => {
+    if (user && !loading) {
+      fetchUnreadCount();
+    }
+  }, [user, loading, pathname]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const count = await notificationsApi.getUnreadCount(user?.id || '');
+      setUnreadCount(count);
+    } catch (err) {
+      console.error('Error fetching notifications count:', err);
+    }
+  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -26,7 +44,7 @@ export default function Navbar() {
   return (
     <nav className="bg-blue-600 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex items-center justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="text-white text-xl font-bold">
@@ -91,6 +109,23 @@ export default function Navbar() {
               <div className="text-blue-50 px-3 py-2">Loading...</div>
             ) : user ? (
               <div className="ml-3 relative flex items-center space-x-4">
+                <Link 
+                  href="/notifications" 
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium relative ${
+                    isActive('/notifications') 
+                      ? 'bg-blue-700 text-white' 
+                      : 'text-blue-50 hover:bg-blue-500'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
                 <Link 
                   href="/profile" 
                   className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
@@ -218,6 +253,21 @@ export default function Navbar() {
                 }`}
               >
                 Announcements
+              </Link>
+              <Link
+                href="/notifications"
+                className={`block px-3 py-2 rounded-md text-base font-medium flex justify-between items-center ${
+                  isActive('/notifications') 
+                    ? 'bg-blue-700 text-white' 
+                    : 'text-blue-50 hover:bg-blue-500'
+                }`}
+              >
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
               <Link
                 href="/profile"
