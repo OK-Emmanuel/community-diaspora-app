@@ -30,7 +30,7 @@ export default function EditProfilePage() {
         phone: user.phone || '',
         address: user.address || '',
         occupation: user.occupation || '',
-        date_of_birth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
+        date_of_birth: user.date_of_birth ? new Date(user.date_of_birth) : undefined,
       });
       setIsLoading(false);
     } else if (!authLoading) {
@@ -220,7 +220,7 @@ export default function EditProfilePage() {
                 type="date"
                 name="date_of_birth"
                 id="date_of_birth"
-                value={formData.date_of_birth || ''}
+                value={formData.date_of_birth ? formData.date_of_birth.toISOString().split('T')[0] : ''}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
