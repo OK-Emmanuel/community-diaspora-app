@@ -21,13 +21,12 @@ const registerSchema = z.object({
     .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
     .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
   confirmPassword: z.string(),
-  role: z.enum(['financial', 'non_financial'] as const),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+type RegisterFormData = Omit<z.infer<typeof registerSchema>, 'role'>;
 
 export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,9 +40,6 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: 'financial',
-    },
   });
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -54,7 +50,7 @@ export default function RegisterPage() {
       await signUp(data.email, data.password, {
         first_name: data.firstName,
         last_name: data.lastName,
-        role: data.role as UserRole,
+        role: 'financial',
       });
       
       // On successful registration
@@ -186,35 +182,22 @@ export default function RegisterPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700">Membership Type</label>
-                <div className="mt-2 space-y-2">
+                <div className="mt-2">
                   <div className="flex items-center">
                     <input
                       id="financial"
                       type="radio"
                       value="financial"
-                      {...register('role')}
+                      checked
+                      readOnly
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                     />
                     <label htmlFor="financial" className="ml-3 block text-sm font-medium text-gray-700">
                       Financial Member (Can vote, post, and comment)
                     </label>
                   </div>
-                  <div className="flex items-center">
-                    <input
-                      id="non_financial"
-                      type="radio"
-                      value="non_financial"
-                      {...register('role')}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                    />
-                    <label htmlFor="non_financial" className="ml-3 block text-sm font-medium text-gray-700">
-                      Non-Financial Member (Limited access, read-only)
-                    </label>
-                  </div>
+                  <p className="text-xs text-gray-500 mt-1">All new members are registered as financial members. You can request an upgrade or change later.</p>
                 </div>
-                {errors.role && (
-                  <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
-                )}
               </div>
             </div>
           </div>

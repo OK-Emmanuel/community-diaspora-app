@@ -21,7 +21,7 @@ export default function DashboardPage() {
       return;
     }
 
-    // Fetch user's dependents if they are a financial member
+    // Fetch user's dependants if they are a financial member
     const fetchDependents = async () => {
       try {
         if (user && isFinancialMember()) {
@@ -29,8 +29,8 @@ export default function DashboardPage() {
           setDependents(data);
         }
       } catch (err) {
-        console.error('Error fetching dependents:', err);
-        setError('Failed to load dependents. Please try again later.');
+        console.error('Error fetching dependants:', err);
+        setError('Failed to load dependants. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="ml-5 w-0 flex-1">
                         <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">Dependents</dt>
+                          <dt className="text-sm font-medium text-gray-500 truncate">Dependants</dt>
                           <dd>
                             <div className="text-lg font-medium text-gray-900">{loading ? '...' : dependents.length}</div>
                           </dd>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                         onClick={() => router.push('/profile')}
                         className="font-medium text-blue-700 hover:text-blue-900"
                       >
-                        Manage dependents
+                        Manage dependants
                       </button>
                     </div>
                   </div>

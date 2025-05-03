@@ -27,7 +27,7 @@ This PRD focuses on Phase 1 of the product: *Membership and Engagement.
 3.3 Profile Management
 - View/edit personal information
 - Add non-financial members (spouse/child)
-- Request membership upgrade
+- Request membership upgrade **
 
 - 3.4 Community Feed
 - Members can create posts
@@ -58,7 +58,7 @@ Full access to all modules and data
 Financial Member
 Can post, comment, add dependants, view dashboard
 Non-Financial Member
-Read-only access (view feed, announcements, no posting)
+Read-only access (view feed, announcements, no posting) **
 
 
 5. Non-Functional Requirements

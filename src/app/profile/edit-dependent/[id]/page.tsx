@@ -231,7 +231,7 @@ export default function EditDependentPage({ params }: { params: { id: string } }
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <div className="flex items-center mb-8">
-        <h1 className="text-3xl font-bold">Edit Dependent</h1>
+        <h1 className="text-3xl font-bold">Edit Dependant</h1>
         <Link href="/profile" className="ml-auto text-blue-500 hover:text-blue-700">
           Back to Profile
         </Link>
@@ -359,9 +359,9 @@ export default function EditDependentPage({ params }: { params: { id: string } }
       
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="p-6">
-          <h3 className="text-lg font-medium text-red-600 mb-2">Remove Dependent</h3>
+          <h3 className="text-lg font-medium text-red-600 mb-2">Remove Dependant</h3>
           <p className="text-gray-600 mb-4">
-            This will permanently remove this dependent from your profile. This action cannot be undone.
+            This will permanently remove this dependant from your profile. This action cannot be undone.
           </p>
           <button
             type="button"
@@ -371,7 +371,7 @@ export default function EditDependentPage({ params }: { params: { id: string } }
               isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
-            Remove Dependent
+            Remove Dependant
           </button>
         </div>
       </div>

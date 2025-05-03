@@ -33,15 +33,15 @@ export default function AddDependentPage() {
 
     try {
       if (!user) {
-        throw new Error('You must be logged in to add a dependent');
+        throw new Error('You must be logged in to add a dependant');
       }
 
       if (!isFinancialMember()) {
-        throw new Error('Only financial members can add dependents');
+        throw new Error('Only financial members can add dependants');
       }
 
       // Prepare data for submission
-      const dependentData: Omit<NonFinancialMember, 'id' | 'created_at' | 'updated_at'> = {
+      const dependantData: Omit<NonFinancialMember, 'id' | 'created_at' | 'updated_at'> = {
         member_id: user.id,
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -50,8 +50,8 @@ export default function AddDependentPage() {
         date_of_birth: formData.date_of_birth ? new Date(formData.date_of_birth) : undefined,
       };
 
-      await membersApi.addDependent(dependentData);
-      setSuccess('Dependent added successfully!');
+      await membersApi.addDependent(dependantData);
+      setSuccess('Dependant added successfully!');
       
       // Reset form
       setFormData({
@@ -66,8 +66,8 @@ export default function AddDependentPage() {
         router.push('/profile');
       }, 2000);
     } catch (err) {
-      console.error('Error adding dependent:', err);
-      setError(err instanceof Error ? err.message : 'Failed to add dependent');
+      console.error('Error adding dependant:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add dependant');
     } finally {
       setIsSubmitting(false);
     }
@@ -82,7 +82,7 @@ export default function AddDependentPage() {
           <p className="text-gray-600 mb-6">
             {!user 
               ? 'You must be logged in to access this page.' 
-              : 'Only financial members can add dependents.'}
+              : 'Only financial members can add dependants.'}
           </p>
           <div className="flex justify-center space-x-4">
             <Link href="/login" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
@@ -113,7 +113,7 @@ export default function AddDependentPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <div className="flex items-center mb-8">
-        <h1 className="text-3xl font-bold">Add Dependent</h1>
+        <h1 className="text-3xl font-bold">Add Dependant</h1>
         <Link href="/profile" className="ml-auto text-blue-500 hover:text-blue-700">
           Back to Profile
         </Link>
@@ -134,8 +134,8 @@ export default function AddDependentPage() {
       <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg overflow-hidden">
         <div className="p-6">
           <p className="mb-6 text-gray-600">
-            Add a dependent (non-financial member) who is related to you. As a financial member, 
-            you can add family members or others who qualify as your dependents.
+            Add a dependant (non-financial member) who is related to you. As a financial member, 
+            you can add family members or others who qualify as your dependants.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -221,7 +221,7 @@ export default function AddDependentPage() {
               isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
-            {isSubmitting ? 'Adding...' : 'Add Dependent'}
+            {isSubmitting ? 'Adding...' : 'Add Dependant'}
           </button>
         </div>
       </form>

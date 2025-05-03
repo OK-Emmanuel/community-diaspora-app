@@ -152,9 +152,9 @@ export default function ProfilePage() {
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="p-6 border-b">
             <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold">Dependents</h3>
+              <h3 className="text-xl font-bold">Dependants</h3>
               <Link href="/profile/add-dependent" className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                Add Dependent
+                Add Dependant
               </Link>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function ProfilePage() {
           
           {dependents.length === 0 ? (
             <div className="p-6 text-center text-gray-500">
-              You haven't added any dependents yet.
+              You haven't added any dependants yet.
             </div>
           ) : (
             <div className="divide-y">

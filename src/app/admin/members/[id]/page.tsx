@@ -235,15 +235,15 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
           {member.role === 'financial' && (
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="border-b border-gray-200 p-6">
-                <h3 className="text-lg font-medium text-gray-900">Dependents</h3>
+                <h3 className="text-lg font-medium text-gray-900">Dependants</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  {member.first_name}'s dependent family members
+                  {member.first_name}'s dependant family members
                 </p>
               </div>
               
               <div className="p-6">
                 {dependents.length === 0 ? (
-                  <p className="text-gray-500 text-center">No dependents found</p>
+                  <p className="text-gray-500 text-center">No dependants found</p>
                 ) : (
                   <div className="space-y-6">
                     {dependents.map((dependent) => (
