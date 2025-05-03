@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
+// Mark the route as dynamic to prevent static generation
+export const dynamic = 'force-dynamic';
+
 // Initialize Supabase client with server-side auth
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +39,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Get the user's session from cookies
+    // Get the user's session from cookies or authorization header
     const cookieStore = cookies()
     
     // Try different possible cookie names (Supabase can use different formats)

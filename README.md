@@ -107,6 +107,36 @@ To disable email confirmation during development:
 
 You can test the API endpoints using the Postman collection in `docs/api-documentation.postman_collection.json`.
 
+## Deployment
+
+### Deploying to Vercel
+
+1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
+
+2. Connect your repository to Vercel
+   - Sign in to [Vercel](https://vercel.com)
+   - Click "Add New" → "Project"
+   - Import your Git repository
+   - Select the "Next.js" framework preset
+
+3. Configure environment variables
+   - Add the following environment variables in the Vercel project settings:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   ```
+   
+   ⚠️ **IMPORTANT**: The `SUPABASE_SERVICE_ROLE_KEY` is required for server-side API routes. You can find this key in your Supabase dashboard under Project Settings → API → "service_role" key (secret).
+
+4. Deploy your project
+   - Click "Deploy"
+   - Vercel will build and deploy your application
+
+5. Troubleshooting deployment issues
+   - If you see errors related to dynamic routes, ensure all routes using cookies or server-side features are marked with `export const dynamic = 'force-dynamic'`
+   - For client components using hooks like `useSearchParams()`, ensure they're wrapped in a Suspense boundary
+
 ## Development Workflow
 
 1. Create a feature branch

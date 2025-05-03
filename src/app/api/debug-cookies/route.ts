@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
+// Mark the route as dynamic to prevent static generation
+export const dynamic = 'force-dynamic';
+
 /**
  * Debug endpoint to check cookies (NOTE: Only use in development environment)
  */
