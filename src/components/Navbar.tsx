@@ -100,7 +100,7 @@ export default function Navbar() {
                   }`}
                 >
                   <span className="hidden md:inline">
-                    {user.user_metadata?.full_name || user.email}
+                    {user.first_name || user.email}
                   </span>
                   <span className="inline md:hidden">Profile</span>
                 </Link>

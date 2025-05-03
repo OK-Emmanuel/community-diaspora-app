@@ -16,18 +16,15 @@ export async function GET() {
   try {
     const cookieStore = cookies()
     const allCookies = cookieStore.getAll()
-    
+
     // Get Supabase session cookie
     const supabaseAuthCookie = cookieStore.get('sb-auth-token')
 
     // Create a safe response that doesn't expose sensitive information
     const cookieInfo = allCookies.map(cookie => ({
       name: cookie.name,
-      path: cookie.path,
-      secure: cookie.secure,
-      httpOnly: cookie.httpOnly,
-      valuePreview: cookie.name.includes('auth') ? 
-        `${cookie.value.substring(0, 15)}...` : 
+      valuePreview: cookie.name.includes('auth') ?
+        `${cookie.value.substring(0, 15)}...` :
         `Length: ${cookie.value.length}`
     }))
 
@@ -60,4 +57,4 @@ export async function GET() {
     console.error('Error in debug-cookies route:', error)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
-} 
+}
