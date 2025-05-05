@@ -190,23 +190,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (authData.user) {
         try {
-          // Create member profile
-          const { error: profileError } = await supabase
+          // First check if a member with this email already exists
+          const { data: existingMember } = await supabase
             .from('members')
-            .insert([
-              {
-                id: authData.user.id,
-                email,
+            .select('id, email')
+            .eq('email', email)
+            .maybeSingle();
+            
+          if (existingMember) {
+            // If a member exists but has a different ID, update the record instead
+            const { error: updateError } = await supabase
+              .from('members')
+              .update({
                 first_name: userData.first_name,
                 last_name: userData.last_name,
                 role: userData.role || 'financial',
                 status: 'pending',
-              }
-            ]);
+              })
+              .eq('id', existingMember.id);
+              
+            if (updateError) {
+              console.error("Profile update error:", updateError);
+              throw updateError;
+            }
+          } else {
+            // Create new member profile if no existing member was found
+            const { error: profileError } = await supabase
+              .from('members')
+              .upsert([
+                {
+                  id: authData.user.id,
+                  email,
+                  first_name: userData.first_name,
+                  last_name: userData.last_name,
+                  role: userData.role || 'financial',
+                  status: 'pending',
+                }
+              ], { onConflict: 'id' });
 
-          if (profileError) {
-            console.error("Profile creation error:", profileError);
-            throw profileError;
+            if (profileError) {
+              console.error("Profile creation error:", profileError);
+              throw profileError;
+            }
           }
         } catch (profileError) {
           console.error("Caught profile creation error:", profileError);

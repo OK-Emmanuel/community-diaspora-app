@@ -57,11 +57,20 @@ export default function RegisterPage() {
       router.push('/login?registered=true');
     } catch (error) {
       console.error('Registration error:', error);
-      setSubmitError(
-        error instanceof Error 
-          ? error.message 
-          : 'An unexpected error occurred during registration'
-      );
+      
+      // Handle specific error cases
+      if (error instanceof Error) {
+        // Check for common Supabase errors
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          setSubmitError('An account with this email already exists. Please log in instead.');
+        } else if (error.message.includes('Email rate limit exceeded')) {
+          setSubmitError('Too many signup attempts. Please try again later.');
+        } else {
+          setSubmitError(error.message);
+        }
+      } else {
+        setSubmitError('An unexpected error occurred during registration');
+      }
     } finally {
       setIsSubmitting(false);
     }
