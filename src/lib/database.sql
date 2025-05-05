@@ -35,6 +35,9 @@ CREATE TABLE non_financial_members (
     relationship VARCHAR(50) NOT NULL,
     date_of_birth DATE,
     status member_status DEFAULT 'active',
+    email VARCHAR(255) UNIQUE,
+    auth_user_id UUID UNIQUE,
+    upgrade_requested BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -370,4 +373,13 @@ CREATE POLICY "Financial members can delete their dependents"
             WHERE id = auth.uid()
             AND role = 'financial'
         )
-    ); 
+    );
+
+CREATE POLICY "Dependants can select their own record"
+    ON non_financial_members FOR SELECT
+    USING (auth.uid() = auth_user_id);
+
+CREATE POLICY "Dependants can request upgrade (update own record)"
+    ON non_financial_members FOR UPDATE
+    USING (auth.uid() = auth_user_id)
+    WITH CHECK (auth.uid() = auth_user_id); 

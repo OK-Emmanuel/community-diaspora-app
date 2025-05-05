@@ -297,3 +297,14 @@ Key files updated:
 - `src/app/feed/page.tsx`: Added robust error handling and helper functions
 - `src/app/feed/post/[id]/page.tsx`: Improved error handling and display
 - `src/app/page.tsx`: Updated announcement author display
+
+---
+
+## April 2025: Dependant Login & Upgrade Request Support
+
+- Added `email`, `auth_user_id`, and `upgrade_requested` fields to `non_financial_members` table (for dependant login and upgrade requests).
+- Updated TypeScript types to match new schema.
+- Added RLS policies:
+  - Dependants (when logged in via `auth_user_id`) can select their own record.
+  - Dependants can update their own record (to request upgrade).
+- Next: Integrate with Supabase Auth to allow dependants to log in, and create API endpoint for dependants to request upgrade.

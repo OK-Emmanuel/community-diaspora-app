@@ -13,6 +13,13 @@ We need to update the following texts:
 - The admin should be able to create communities, then people register into that community.
 
 - It's not just a membership site, it's a SAAS community app, so we should be able to create a community then onboard people into it. The admin should be able to manage different communities on the platform.
-- Th
+
+- Member groups of a community should not be able to see other community. 
+- The app name should be dynamic based on the community name.
+- The app logo should be dynamic based on the community name.
+- The app favicon should be dynamic based on the community name.
+
+- Createa template for us to manage and create communities.
+
 
 

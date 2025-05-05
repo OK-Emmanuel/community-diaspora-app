@@ -29,6 +29,9 @@ export interface NonFinancialMember {
   relationship: string;
   date_of_birth?: Date;
   status: MemberStatus;
+  email?: string;
+  auth_user_id?: string;
+  upgrade_requested?: boolean;
   created_at: Date;
   updated_at: Date;
 }
