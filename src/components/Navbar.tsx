@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { notificationsApi } from '@/lib/api';
 
-export default function Navbar() {
-  const { user, signOut, loading, isAdmin } = useAuth();
+export default function Navbar({ branding }: { branding?: { name: string; logo_url?: string } }) {
+  const { user, signOut, loading, isAdmin, isSuperAdmin } = useAuth();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -47,8 +47,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-white text-xl font-bold">
-                Diaspora Community
+              <Link href="/" className="text-white text-xl font-bold flex items-center gap-2">
+                {branding?.logo_url && (
+                  <img src={branding.logo_url} alt="Logo" className="h-8 w-8 rounded-full bg-white" />
+                )}
+                {branding?.name || 'Diaspora Community'}
               </Link>
             </div>
             
@@ -86,7 +89,7 @@ export default function Navbar() {
                   >
                     Announcements
                   </Link>
-                  {isAdmin() && (
+                  {(isAdmin() || isSuperAdmin()) && (
                     <Link 
                       href="/admin/members" 
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
@@ -256,7 +259,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/notifications"
-                className={`block px-3 py-2 rounded-md text-base font-medium flex justify-between items-center ${
+                className={`px-3 py-2 rounded-md text-base font-medium flex justify-between items-center ${
                   isActive('/notifications') 
                     ? 'bg-blue-700 text-white' 
                     : 'text-blue-50 hover:bg-blue-500'
@@ -279,7 +282,7 @@ export default function Navbar() {
               >
                 Profile
               </Link>
-              {isAdmin() && (
+              {(isAdmin() || isSuperAdmin()) && (
                 <Link
                   href="/admin/members"
                   className={`block px-3 py-2 rounded-md text-base font-medium ${

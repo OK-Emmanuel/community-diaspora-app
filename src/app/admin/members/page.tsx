@@ -8,7 +8,7 @@ import Link from 'next/link';
 import type { Member } from '@/types/database';
 
 export default function AdminMembersPage() {
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin, isSuperAdmin } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,14 +26,14 @@ export default function AdminMembersPage() {
         return;
       }
       
-      if (!isAdmin()) {
+      if (!isAdmin() && !isSuperAdmin()) {
         router.push('/dashboard');
         return;
       }
       
       fetchMembers();
     }
-  }, [user, authLoading, isAdmin, router, currentPage, statusFilter, roleFilter]);
+  }, [user, authLoading, isAdmin, isSuperAdmin, router, currentPage, statusFilter, roleFilter]);
 
   // Fetch members from Supabase
   const fetchMembers = async () => {

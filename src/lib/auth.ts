@@ -15,6 +15,7 @@ export interface AuthContextType extends AuthState {
   updateProfile: (data: Partial<Member>) => Promise<void>;
   isAdmin: () => boolean;
   isFinancialMember: () => boolean;
+  isSuperAdmin: () => boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

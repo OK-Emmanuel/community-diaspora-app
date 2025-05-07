@@ -12,7 +12,7 @@ type AnnouncementWithAuthor = Announcement & {
 };
 
 export default function AnnouncementsPage() {
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin, isSuperAdmin } = useAuth();
   const [announcements, setAnnouncements] = useState<AnnouncementWithAuthor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -118,7 +118,7 @@ export default function AnnouncementsPage() {
         <div className="max-w-5xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Announcements</h1>
-            {isAdmin() && (
+            {(isAdmin() || isSuperAdmin()) && (
               <Link 
                 href="/admin/announcements/create" 
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

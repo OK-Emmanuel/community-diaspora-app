@@ -292,6 +292,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isAdmin = () => state.user?.role === 'admin';
+  const isSuperAdmin = () => state.user?.role === 'superadmin';
   const isFinancialMember = () => state.user?.role === 'financial';
 
   const contextValue: AuthContextType = {
@@ -302,6 +303,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateProfile,
     isAdmin,
     isFinancialMember,
+    isSuperAdmin,
   };
 
   return (

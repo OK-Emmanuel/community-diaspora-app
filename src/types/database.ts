@@ -1,7 +1,25 @@
-export type UserRole = 'admin' | 'financial' | 'non_financial';
+export type UserRole = 'superadmin' | 'admin' | 'financial' | 'non_financial';
 export type MemberStatus = 'active' | 'inactive' | 'suspended' | 'pending';
 export type ContributionStatus = 'paid' | 'pending' | 'overdue';
 export type AnnouncementType = 'general' | 'financial' | 'event' | 'emergency';
+
+export interface Community {
+  id: string;
+  name: string;
+  logo_url?: string;
+  favicon_url?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CommunityInvite {
+  id: string;
+  community_id: string;
+  invite_token: string;
+  expires_at?: Date;
+  used: boolean;
+  created_at: Date;
+}
 
 export interface Member {
   id: string;
@@ -17,6 +35,8 @@ export interface Member {
   joined_date: Date;
   last_login?: Date;
   profile_image_url?: string;
+  community_id?: string;
+  is_community_admin?: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -32,6 +52,7 @@ export interface NonFinancialMember {
   email?: string;
   auth_user_id?: string;
   upgrade_requested?: boolean;
+  community_id?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -184,4 +205,6 @@ export interface Database {
   events: Event;
   event_registrations: EventRegistration;
   contributions: Contribution;
+  communities: Community;
+  community_invites: CommunityInvite;
 } 

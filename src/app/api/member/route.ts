@@ -153,78 +153,33 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('Fetching member profile for user:', userId)
+    // Check if admin or superadmin and if query param 'all' is set
+    const isUserAdminOrSuper = await isAdminOrSuperAdmin(supabase, userId);
+    const url = new URL(request.url);
+    const listAll = url.searchParams.get('all') === 'true';
 
-    // Query the members table with admin privileges
-    const { data: member, error } = await supabase
+    if (isUserAdminOrSuper && listAll) {
+      // Admin or superadmin can list all members
+      const { data, error } = await supabase.from('members').select('*');
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(data);
+    }
+
+    // Otherwise, only return members in the same community
+    const { data: self, error: selfError } = await supabase
+      .from('members')
+      .select('community_id')
+      .eq('id', userId)
+      .single();
+    if (selfError || !self?.community_id) {
+      return NextResponse.json({ error: 'Community not found for user' }, { status: 403 });
+    }
+    const { data, error } = await supabase
       .from('members')
       .select('*')
-      .eq('id', userId)
-      .maybeSingle()
-
-    if (error) {
-      console.error('Error fetching member:', error)
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      )
-    }
-
-    // If member doesn't exist, create a new record
-    if (!member) {
-      // Get basic user data
-      let email = session.user?.email
-      let userMetadata = session.user?.user_metadata || {}
-      
-      if (!email) {
-        // Try to get user details directly if we have a service role key
-        if (supabaseServiceKey) {
-          try {
-            const { data: userData, error: userError } = await supabase
-              .auth.admin.getUserById(userId)
-    
-            if (!userError && userData?.user) {
-              email = userData.user.email
-              userMetadata = userData.user.user_metadata || {}
-            }
-          } catch (adminError) {
-            console.error('Error using admin API:', adminError)
-          }
-        }
-      }
-
-      if (!email) {
-        email = `user-${userId.substring(0, 8)}@example.com`
-        console.warn(`No email found for user ${userId}, using placeholder:`, email)
-      }
-
-      // Create a new member record
-      const { data: newMember, error: insertError } = await supabase
-        .from('members')
-        .insert({
-          id: userId,
-          email: email,
-          first_name: userMetadata?.first_name || 'New',
-          last_name: userMetadata?.last_name || 'User',
-          role: userMetadata?.role || 'financial',
-          status: 'active'
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error('Error creating member:', insertError)
-        return NextResponse.json(
-          { error: insertError.message },
-          { status: 500 }
-        )
-      }
-
-      return NextResponse.json(newMember)
-    }
-
-    // Return the member data
-    return NextResponse.json(member)
+      .eq('community_id', self.community_id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
   } catch (e) {
     console.error('Unexpected error in /api/member route:', e)
     return NextResponse.json(
@@ -232,4 +187,14 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+// Helper to check if user is admin or superadmin
+async function isAdminOrSuperAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from('members')
+    .select('role')
+    .eq('id', userId)
+    .single();
+  return data?.role === 'admin' || data?.role === 'superadmin';
 } 

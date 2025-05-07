@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -33,6 +33,7 @@ export default function RegisterPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { signUp } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   const {
     register,
@@ -42,17 +43,48 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
+  const [communities, setCommunities] = useState([]);
+  const [selectedCommunity, setSelectedCommunity] = useState<string | null>(null);
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [inviteCommunity, setInviteCommunity] = useState<any>(null);
+
+  useEffect(() => {
+    // Check for invite token in URL
+    const token = searchParams.get('invite');
+    if (token) {
+      setInviteToken(token);
+      // Fetch invite details
+      fetch(`/api/community/invite?invite_token=${token}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.community_id) {
+            setSelectedCommunity(data.community_id);
+            setInviteCommunity(data);
+          }
+        });
+    } else {
+      // Fetch all communities for selection
+      fetch('/api/community')
+        .then(res => res.json())
+        .then(data => setCommunities(data));
+    }
+  }, [searchParams]);
+
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsSubmitting(true);
       setSubmitError(null);
-      
+      if (!selectedCommunity) {
+        setSubmitError('Please select a community.');
+        setIsSubmitting(false);
+        return;
+      }
       await signUp(data.email, data.password, {
         first_name: data.firstName,
         last_name: data.lastName,
         role: 'financial',
+        community_id: selectedCommunity,
       });
-      
       // On successful registration
       router.push('/login?registered=true');
     } catch (error) {
@@ -186,6 +218,33 @@ export default function RegisterPage() {
                 />
                 {errors.confirmPassword && (
                   <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <label htmlFor="community" className="block text-sm font-medium text-gray-700">
+                  Community
+                </label>
+                {inviteCommunity ? (
+                  <input
+                    id="community"
+                    type="text"
+                    value={inviteCommunity.community_id}
+                    readOnly
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                  />
+                ) : (
+                  <select
+                    id="community"
+                    value={selectedCommunity || ''}
+                    onChange={e => setSelectedCommunity(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Select a community</option>
+                    {communities.map((c: any) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
                 )}
               </div>
               

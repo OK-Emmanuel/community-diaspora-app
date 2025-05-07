@@ -116,6 +116,22 @@
 - [x] Create diagnostic tools
 - [x] Create maintenance guide
 
+## Phase 6: Community & Clan Management
+- [ ] Implement community (clan) creation by admin.
+- [ ] Allow users to register into a specific community.
+- [ ] Restrict member groups to only see their own community.
+- [ ] Make app name, logo, and favicon dynamic based on community.
+- [ ] Create a template for managing and creating communities.
+- [ ] Implement invite-only (backdoor) link for community admin setup.
+- [ ] Allow community admins to share registration links for their clan.
+- [ ] Display community name prominently after login; show software name as small print.
+- [ ] On registration, only allow financial membership type; non-financial members are added by financial members.
+
+## Bugs & UX Improvements
+- [ ] Add a button for members to view a log of their record and those of their dependants.
+- [ ] Update save button text to "save record" or "save dependant" as appropriate.
+- [ ] Fix date of birth input error for financial members.
+
 ## Priority Order for Development:
 1. Project setup and authentication (done)
 2. Member management system (done)

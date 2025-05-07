@@ -2,10 +2,42 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create custom types for better data consistency
-CREATE TYPE user_role AS ENUM ('admin', 'financial', 'non_financial');
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE user_role AS ENUM ('superadmin', 'admin', 'financial', 'non_financial');
+  ELSE
+    -- Add 'superadmin' if not present
+    BEGIN
+      ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'superadmin' BEFORE 'admin';
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END;
+  END IF;
+END $$;
+
 CREATE TYPE member_status AS ENUM ('active', 'inactive', 'suspended', 'pending');
 CREATE TYPE contribution_status AS ENUM ('paid', 'pending', 'overdue');
 CREATE TYPE announcement_type AS ENUM ('general', 'financial', 'event', 'emergency');
+
+-- Communities table
+CREATE TABLE communities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(150) NOT NULL UNIQUE,
+    logo_url TEXT,
+    favicon_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Community invite links
+CREATE TABLE community_invites (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    community_id UUID REFERENCES communities(id) ON DELETE CASCADE,
+    invite_token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    used BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Members table (extends Supabase auth.users)
 CREATE TABLE members (
@@ -22,6 +54,8 @@ CREATE TABLE members (
     joined_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP WITH TIME ZONE,
     profile_image_url TEXT,
+    community_id UUID REFERENCES communities(id),
+    is_community_admin BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -38,6 +72,7 @@ CREATE TABLE non_financial_members (
     email VARCHAR(255) UNIQUE,
     auth_user_id UUID UNIQUE,
     upgrade_requested BOOLEAN DEFAULT false,
+    community_id UUID REFERENCES communities(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -141,6 +176,9 @@ CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
 CREATE INDEX idx_announcements_type ON announcements(type);
 CREATE INDEX idx_notifications_member_read ON notifications(member_id, is_read);
 CREATE INDEX idx_contributions_member_status ON contributions(member_id, status);
+CREATE INDEX idx_members_community_id ON members(community_id);
+CREATE INDEX idx_non_financial_members_community_id ON non_financial_members(community_id);
+CREATE INDEX idx_communities_name ON communities(name);
 
 -- Set up Row Level Security (RLS)
 ALTER TABLE members ENABLE ROW LEVEL SECURITY;

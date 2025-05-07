@@ -6,8 +6,13 @@ import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 
 export default function AdminPage() {
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin, isSuperAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [communities, setCommunities] = useState<any[]>([]);
+  const [newCommunity, setNewCommunity] = useState({ name: '', logo_url: '', favicon_url: '' });
+  const [inviteLinks, setInviteLinks] = useState<{ [communityId: string]: string }>({});
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -17,14 +22,64 @@ export default function AdminPage() {
         return;
       }
       
-      if (!isAdmin()) {
+      if (!isAdmin() && !isSuperAdmin()) {
         router.push('/dashboard');
         return;
       }
       
       setIsLoading(false);
+      fetchCommunities();
     }
-  }, [user, authLoading, isAdmin, router]);
+  }, [user, authLoading, isAdmin, isSuperAdmin, router]);
+
+  const fetchCommunities = async () => {
+    const res = await fetch('/api/community');
+    const data = await res.json();
+    setCommunities(Array.isArray(data) ? data : []);
+  };
+
+  const handleCreateCommunity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/community', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id,
+          name: newCommunity.name,
+          logo_url: newCommunity.logo_url,
+          favicon_url: newCommunity.favicon_url,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to create community');
+      setNewCommunity({ name: '', logo_url: '', favicon_url: '' });
+      fetchCommunities();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleGenerateInvite = async (communityId: string) => {
+    setInviteLinks((prev) => ({ ...prev, [communityId]: 'Generating...' }));
+    try {
+      const res = await fetch('/api/community/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id, community_id: communityId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate invite');
+      // Construct invite link (assuming /register?invite=...)
+      const inviteUrl = `${window.location.origin}/register?invite=${data.invite_token}`;
+      setInviteLinks((prev) => ({ ...prev, [communityId]: inviteUrl }));
+    } catch (err: any) {
+      setInviteLinks((prev) => ({ ...prev, [communityId]: err.message }));
+    }
+  };
 
   if (authLoading || isLoading) {
     return (
@@ -56,6 +111,31 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 sm:px-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Community Management Card */}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5m6 0v-6a4 4 0 00-8 0v6" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-lg font-medium text-gray-900">Community Management</h2>
+                    <p className="text-sm text-gray-500">Create, edit, and manage communities and invite links</p>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <Link 
+                    href="/admin/communities" 
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Manage Communities
+                  </Link>
+                </div>
+              </div>
+            </div>
+
             {/* Member Management Card */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-6">

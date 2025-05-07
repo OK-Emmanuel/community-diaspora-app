@@ -365,6 +365,170 @@
           "path": ["api", "member"]
         }
       }
+    },
+    {
+      "name": "Community",
+      "item": [
+        {
+          "name": "Create Community",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+              { "key": "Authorization", "value": "Bearer {{JWT}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/community",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "community"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Community Name\",\n  \"logo_url\": \"https://example.com/logo.png\",\n  \"favicon_url\": \"https://example.com/favicon.ico\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Communities",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+              { "key": "Authorization", "value": "Bearer {{JWT}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/community",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "community"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Community",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+              { "key": "Authorization", "value": "Bearer {{JWT}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/community?id=eq.{{COMMUNITY_ID}}",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "community"],
+              "query": [
+                { "key": "id", "value": "eq.{{COMMUNITY_ID}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Community",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+              { "key": "Authorization", "value": "Bearer {{JWT}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/community?id=eq.{{COMMUNITY_ID}}",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "community"],
+              "query": [
+                { "key": "id", "value": "eq.{{COMMUNITY_ID}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Name\",\n  \"logo_url\": \"https://example.com/newlogo.png\",\n  \"favicon_url\": \"https://example.com/newfavicon.ico\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Community",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+              { "key": "Authorization", "value": "Bearer {{JWT}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/community?id=eq.{{COMMUNITY_ID}}",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "community"],
+              "query": [
+                { "key": "id", "value": "eq.{{COMMUNITY_ID}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Community Invite",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+              { "key": "Authorization", "value": "Bearer {{JWT}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/community_invites",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "community_invites"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"community_id\": \"{{COMMUNITY_ID}}\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Community Invite",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/community_invites?invite_token=eq.{{INVITE_TOKEN}}",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "community_invites"],
+              "query": [
+                { "key": "invite_token", "value": "eq.{{INVITE_TOKEN}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Accept Community Invite",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+              { "key": "Authorization", "value": "Bearer {{JWT}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/community_invites/accept",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "community_invites", "accept"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invite_token\": \"{{INVITE_TOKEN}}\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -374,6 +538,8 @@
     { "key": "PASSWORD", "value": "" },
     { "key": "USER_ID", "value": "" },
     { "key": "JWT", "value": "" },
-    { "key": "POST_ID", "value": "" }
+    { "key": "POST_ID", "value": "" },
+    { "key": "COMMUNITY_ID", "value": "" },
+    { "key": "INVITE_TOKEN", "value": "" }
   ]
 } 
