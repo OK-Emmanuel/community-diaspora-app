@@ -529,6 +529,18 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Superadmin Dashboard (Web UI)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "/superadmin",
+          "host": ["/superadmin"]
+        },
+        "description": "Web dashboard for superadmins. Shows platform analytics: total communities, total members, number of admins, number of superadmins, active/inactive communities, active/inactive members. Only accessible to users with the 'superadmin' role. Non-superadmins are redirected to /dashboard."
+      }
     }
   ],
   "variable": [

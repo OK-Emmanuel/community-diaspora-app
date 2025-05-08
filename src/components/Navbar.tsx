@@ -41,69 +41,75 @@ export default function Navbar({ branding }: { branding?: { name: string; logo_u
     return pathname === path || pathname?.startsWith(`${path}/`);
   };
 
+  const isDefaultName = !branding || branding.name === 'Diaspora Community';
+
   return (
     <nav className="bg-blue-600 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-white text-xl font-bold flex items-center gap-2">
-                {branding?.logo_url && (
-                  <img src={branding.logo_url} alt="Logo" className="h-8 w-8 rounded-full bg-white" />
-                )}
-                {branding?.name || 'Diaspora Community'}
-              </Link>
-            </div>
-            
-            {/* Desktop Navigation */}
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
-              {user && (
-                <>
-                  <Link 
-                    href="/dashboard" 
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      isActive('/dashboard') 
-                        ? 'bg-blue-700 text-white' 
-                        : 'text-blue-50 hover:bg-blue-500'
-                    }`}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link 
-                    href="/feed" 
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      isActive('/feed') 
-                        ? 'bg-blue-700 text-white' 
-                        : 'text-blue-50 hover:bg-blue-500'
-                    }`}
-                  >
-                    Feed
-                  </Link>
-                  <Link 
-                    href="/announcements" 
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      isActive('/announcements') 
-                        ? 'bg-blue-700 text-white' 
-                        : 'text-blue-50 hover:bg-blue-500'
-                    }`}
-                  >
-                    Announcements
-                  </Link>
-                  {(isAdmin() || isSuperAdmin()) && (
-                    <Link 
-                      href="/admin/members" 
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/admin') 
-                          ? 'bg-blue-700 text-white' 
-                          : 'text-blue-50 hover:bg-blue-500'
-                      }`}
-                    >
-                      Admin
-                    </Link>
-                  )}
-                </>
+        <div className="flex justify-between h-16 items-center">
+          <div className="flex flex-col items-start gap-0">
+            <div className="flex items-center gap-3">
+              {branding?.logo_url && (
+                <img src={branding.logo_url} alt="Logo" className="h-8 w-8 rounded-full bg-white" />
               )}
+              <span className="font-bold text-lg text-gray-100">
+                {branding?.name || 'Diaspora Community'}
+              </span>
             </div>
+            {!isDefaultName && (
+              <span className="text-xs text-gray-500 ml-11">Diaspora Community Platform</span>
+            )}
+          </div>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
+            {user && (
+              <>
+                <Link 
+                  href="/dashboard" 
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive('/dashboard') 
+                      ? 'bg-blue-700 text-white' 
+                      : 'text-blue-50 hover:bg-blue-500'
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  href="/feed" 
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive('/feed') 
+                      ? 'bg-blue-700 text-white' 
+                      : 'text-blue-50 hover:bg-blue-500'
+                  }`}
+                >
+                  Feed
+                </Link>
+                <Link 
+                  href="/announcements" 
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive('/announcements') 
+                      ? 'bg-blue-700 text-white' 
+                      : 'text-blue-50 hover:bg-blue-500'
+                  }`}
+                >
+                  Announcements
+                </Link>
+                {(isAdmin() || isSuperAdmin()) && (
+                  <Link 
+                    href="/admin/members" 
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/admin') 
+                        ? 'bg-blue-700 text-white' 
+                        : 'text-blue-50 hover:bg-blue-500'
+                    }`}
+                  >
+                    Admin
+                  </Link>
+                )}
+                
+              </>
+            )}
           </div>
           
           {/* Right side menu */}
@@ -292,6 +298,18 @@ export default function Navbar({ branding }: { branding?: { name: string; logo_u
                   }`}
                 >
                   Admin
+                </Link>
+              )}
+              {isSuperAdmin() && (
+                <Link
+                  href="/superadmin"
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    isActive('/superadmin') 
+                      ? 'bg-blue-700 text-white' 
+                      : 'text-blue-50 hover:bg-blue-500'
+                  }`}
+                >
+                  Superadmin
                 </Link>
               )}
               <button

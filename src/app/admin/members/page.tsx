@@ -378,10 +378,19 @@ export default function AdminMembersPage() {
                           </Link>
                           <Link 
                             href={`/admin/members/${member.id}/edit`}
-                            className="text-indigo-600 hover:text-indigo-900"
+                            className="text-indigo-600 hover:text-indigo-900 mr-4"
                           >
                             Edit
                           </Link>
+                          {/* Promote to Admin button for superadmin */}
+                          {isSuperAdmin() && member.role !== 'admin' && member.role !== 'superadmin' && (
+                            <button
+                              className="text-green-600 hover:text-green-900 border border-green-600 rounded px-2 py-1 ml-2"
+                              onClick={() => updateMemberRole(member.id, 'admin')}
+                            >
+                              Promote to Admin
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))

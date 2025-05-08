@@ -295,6 +295,15 @@ export const adminApi = {
     
     if (error) throw error;
     return data;
+  },
+
+  async getAllCommunities() {
+    const { data, error } = await supabase
+      .from('communities')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
   }
 };
 

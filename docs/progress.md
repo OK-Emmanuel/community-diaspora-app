@@ -308,3 +308,19 @@ Key files updated:
   - Dependants (when logged in via `auth_user_id`) can select their own record.
   - Dependants can update their own record (to request upgrade).
 - Next: Integrate with Supabase Auth to allow dependants to log in, and create API endpoint for dependants to request upgrade.
+
+---
+
+## May 2025: Superadmin Dashboard & Analytics
+
+- Added a dedicated `/superadmin` dashboard page, accessible only to users with the superadmin role.
+- The dashboard displays platform-wide analytics:
+  - Total communities
+  - Total members
+  - Number of admins
+  - Number of superadmins
+  - Active/inactive communities (based on member activity)
+  - Active/inactive members
+- Added a "Superadmin" link to the Navbar (desktop and mobile) for superadmins only.
+- All analytics are calculated client-side using data fetched from the `members` and `communities` tables via the API utilities.
+- Non-superadmin users are redirected to `/dashboard` if they try to access `/superadmin`.
