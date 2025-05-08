@@ -324,3 +324,22 @@ Key files updated:
 - Added a "Superadmin" link to the Navbar (desktop and mobile) for superadmins only.
 - All analytics are calculated client-side using data fetched from the `members` and `communities` tables via the API utilities.
 - Non-superadmin users are redirected to `/dashboard` if they try to access `/superadmin`.
+
+---
+
+## May 2025: Add Member to Community API
+
+- Implemented a POST endpoint in `/api/member` to allow superadmins to add a member to any community, and admins to add a member to their own community only.
+- The endpoint validates permissions and required fields (`first_name`, `last_name`, `email`, `role`, `status`, `community_id`).
+- Returns the created member object on success, or an error if permissions or input are invalid.
+- Documented the endpoint in `docs/api-documentation.postman_collection.json` as `Members - Add Member to Community` with example payload and permission notes.
+
+Next: Design the UI for adding a member from the community members page.
+
+## May 2025: Add Member to Community UI
+
+- Added an "Add Member" button to the community members page, visible to superadmins and admins of that community.
+- Clicking the button opens a modal with a form to enter member details (first name, last name, email, role, status).
+- On submit, the form calls the backend API to add the member to the current community.
+- Shows success/error messages and refreshes the member list on success.
+- UI uses Headless UI's Dialog/Transition for accessibility and smooth modal transitions.

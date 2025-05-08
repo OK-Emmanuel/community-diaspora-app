@@ -197,4 +197,228 @@ async function isAdminOrSuperAdmin(supabase: any, userId: string) {
     .eq('id', userId)
     .single();
   return data?.role === 'admin' || data?.role === 'superadmin';
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const apiKey = supabaseServiceKey || supabaseAnonKey;
+    
+    console.log('API environment check:');
+    console.log('- NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Available' : 'Missing');
+    console.log('- SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? 'Available' : 'Missing');
+    console.log('- NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Available' : 'Missing');
+    
+    if (!supabaseUrl || !apiKey) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+    
+    const supabase = createClient(supabaseUrl, apiKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+    
+    // Get all cookies for debugging
+    const cookieStore = cookies();
+    const allCookies = cookieStore.getAll();
+    console.log('Available cookies:', allCookies.map(c => c.name).join(', '));
+    
+    // Try to get the auth cookie
+    let supabaseAuthCookie = cookieStore.get('sb-auth-token')?.value;
+    if (!supabaseAuthCookie) {
+      // Try alternative cookie formats
+      const sbCookie = allCookies.find(c => 
+        c.name.startsWith('sb-') && c.name.includes('auth')
+      );
+      
+      if (sbCookie) {
+        supabaseAuthCookie = sbCookie.value;
+        console.log('Found alternative Supabase auth cookie:', sbCookie.name);
+      } else {
+        console.log('No Supabase auth cookie found in request');
+      }
+    }
+    
+    // Check Authorization header
+    const authHeader = request.headers.get('authorization');
+    console.log('Authorization header present:', !!authHeader);
+    
+    let userId: string | undefined;
+    let userRole: string | undefined;
+    let userCommunityId: string | undefined;
+    
+    // Try to authenticate with Authorization header
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      console.log('Using Authorization header token');
+      
+      try {
+        const { data: userData, error: tokenError } = await supabase.auth.getUser(token);
+        
+        if (tokenError) {
+          console.error('Token validation error:', tokenError.message);
+          return NextResponse.json({ error: `Invalid token: ${tokenError.message}` }, { status: 401 });
+        }
+        
+        if (!userData.user) {
+          return NextResponse.json({ error: 'No user found for token' }, { status: 401 });
+        }
+        
+        userId = userData.user.id;
+        console.log('Authenticated via token, user ID:', userId);
+      } catch (e) {
+        console.error('Token validation exception:', e);
+        return NextResponse.json({ error: `Token validation failed: ${e}` }, { status: 401 });
+      }
+    }
+    // Try to authenticate with cookie
+    else if (supabaseAuthCookie) {
+      try {
+        let session = JSON.parse(supabaseAuthCookie);
+        userId = session.user?.id;
+        
+        if (!userId) {
+          console.error('No user ID in parsed session cookie');
+          return NextResponse.json({ error: 'Invalid session: No user ID found' }, { status: 401 });
+        }
+        
+        console.log('Authenticated via cookie, user ID:', userId);
+      } catch (e) {
+        console.error('Failed to parse auth cookie:', e);
+        return NextResponse.json({ error: 'Invalid session format' }, { status: 401 });
+      }
+    } 
+    // No authentication found
+    else {
+      console.error('No authentication method found in request');
+      return NextResponse.json({ 
+        error: 'Not authenticated: No valid authentication method found in request',
+        checkAuth: true
+      }, { status: 401 });
+    }
+    
+    // Make sure we have a user ID at this point
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication failed: No user ID' }, { status: 401 });
+    }
+    
+    // Fetch user role and community_id
+    const { data: userData, error: userError } = await supabase
+      .from('members')
+      .select('role, community_id')
+      .eq('id', userId)
+      .single();
+    if (userError || !userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 403 });
+    }
+    userRole = userData.role;
+    userCommunityId = userData.community_id;
+    // Parse request body
+    const body = await request.json();
+    const { first_name, last_name, email, password, role, status, community_id } = body;
+    if (!first_name || !last_name || !email || !password || !role || !status || !community_id) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    // Permission check
+    if (userRole === 'superadmin') {
+      // Can add to any community
+    } else if (userRole === 'admin') {
+      if (community_id !== userCommunityId) {
+        return NextResponse.json({ error: 'Admins can only add members to their own community' }, { status: 403 });
+      }
+    } else {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    // 1. Create user in Supabase Auth
+      console.log('Creating new auth user with email:', email);
+    
+    // Try the admin.createUser method first (newer Supabase versions)
+    let authUser;
+    let authError;
+    
+    try {
+      // Try the newer Supabase admin API first
+      const result = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          first_name,
+          last_name,
+          role,
+          community_id
+        }
+      });
+      
+      authUser = result.data;
+      authError = result.error;
+      
+      console.log('Auth user creation result:', { 
+        success: !!authUser?.user, 
+        userId: authUser?.user?.id,
+        error: authError?.message 
+      });
+    } catch (err) {
+      console.error('Error creating auth user with admin.createUser:', err);
+      
+      // Fallback for older Supabase versions
+      try {
+        console.log('Trying alternative user creation method');
+        const result = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              first_name,
+              last_name,
+              role,
+              community_id
+            }
+          }
+        });
+        
+        authUser = result.data;
+        authError = result.error;
+        
+        console.log('Alternative auth user creation result:', { 
+          success: !!authUser?.user, 
+          userId: authUser?.user?.id,
+          error: authError?.message 
+        });
+      } catch (altErr) {
+        console.error('Alternative user creation also failed:', altErr);
+        authError = { message: 'Failed to create user: ' + (altErr as Error).message };
+      }
+    }
+    
+    if (authError || !authUser?.user) {
+      return NextResponse.json({ 
+        error: authError?.message || 'Failed to create user in auth',
+        details: 'Error creating user in authentication system'
+      }, { status: 500 });
+    }
+    // 2. Insert into members table
+    const { data: newMember, error: insertError } = await supabase
+      .from('members')
+      .insert({
+        id: authUser.user.id,
+        first_name,
+        last_name,
+        email,
+        role,
+        status,
+        community_id
+      })
+      .select()
+      .single();
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+    // Remove password from response
+    const { password: _, ...memberWithoutPassword } = newMember;
+    return NextResponse.json(memberWithoutPassword, { status: 201 });
+  } catch (e) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 } 

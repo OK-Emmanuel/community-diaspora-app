@@ -31,7 +31,7 @@ export default function FeedPage() {
     try {
       setIsLoading(true);
       
-      const data = await postsApi.getPosts(currentPage, postsPerPage);
+      const data = await postsApi.getPosts(currentPage, postsPerPage, user?.id);
       
       setPosts(data as PostWithAuthor[] || []);
       setError(null);

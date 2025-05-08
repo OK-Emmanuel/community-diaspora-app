@@ -89,6 +89,27 @@
       }
     },
     {
+      "name": "Members - Add Member to Community",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "apikey", "value": "{{SUPABASE_ANON_KEY}}" },
+          { "key": "Authorization", "value": "Bearer {{JWT}}" }
+        ],
+        "url": {
+          "raw": "{{SUPABASE_URL}}/api/member",
+          "host": ["{{SUPABASE_URL}}"],
+          "path": ["api", "member"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"financial\",\n  \"status\": \"active\",\n  \"community_id\": \"{{COMMUNITY_ID}}\"\n}"
+        },
+        "description": "Add a new member to a community.\n\nPermissions:\n- Superadmins can add a member to any community.\n- Admins can only add a member to their own community.\n\nRequired fields: first_name, last_name, email, role, status, community_id.\n\nReturns the created member object."
+      }
+    },
+    {
       "name": "Posts - List Posts",
       "request": {
         "method": "GET",

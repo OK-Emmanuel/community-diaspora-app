@@ -60,27 +60,64 @@ export const membersApi = {
 
 // Posts API
 export const postsApi = {
-  async getPosts(page = 1, limit = 10) {
+  async getPosts(page = 1, limit = 10, userId?: string) {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    const { data, error } = await supabase
+    // First get the user's community_id if userId is provided
+    let communityId = null;
+    if (userId) {
+      const { data: userData, error: userError } = await supabase
+        .from('members')
+        .select('community_id')
+        .eq('id', userId)
+        .single();
+      
+      if (userError) throw userError;
+      communityId = userData?.community_id;
+    }
+
+    let query = supabase
       .from('posts')
       .select(`
         *,
         author:members(id, first_name, last_name, profile_image_url)
       `)
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .order('created_at', { ascending: false });
+    
+    // Filter by community if we have a community ID
+    if (communityId) {
+      query = query.eq('community_id', communityId);
+    }
+    
+    // Apply pagination
+    query = query.range(from, to);
+    
+    const { data, error } = await query;
     
     if (error) throw error;
     return data;
   },
 
   async createPost(post: Omit<Post, 'id' | 'created_at' | 'updated_at' | 'likes_count' | 'comments_count'>) {
+    // Get the user's community_id
+    const { data: userData, error: userError } = await supabase
+      .from('members')
+      .select('community_id')
+      .eq('id', post.author_id)
+      .single();
+    
+    if (userError) throw userError;
+    
+    // Add community_id to the post
+    const postWithCommunity = {
+      ...post,
+      community_id: userData?.community_id
+    };
+    
     const { data, error } = await supabase
       .from('posts')
-      .insert([post])
+      .insert([postWithCommunity])
       .select()
       .single();
     
@@ -330,14 +367,23 @@ export const adminApi = {
   },
   
   async generateCommunityInvite(communityId: string, userId: string) {
-    // Generate invite token through RPC function or direct table insert
-    const { data, error } = await supabase
-      .rpc('generate_community_invite', {
-        community_id_param: communityId, 
-        user_id_param: userId
-      });
-    
-    if (error) {
+    try {
+      // First try using the RPC function
+      const { data, error } = await supabase
+        .rpc('generate_community_invite', {
+          community_id_param: communityId, 
+          user_id_param: userId
+        });
+      
+      if (error) {
+        console.warn("RPC function generate_community_invite failed:", error.message);
+        throw error; // Let the catch block handle it
+      }
+      
+      return data.invite_token;
+    } catch (error) {
+      console.log("Falling back to direct API call for invite generation");
+      
       // If RPC is not available, try direct API call
       const response = await fetch('/api/community/invite', {
         method: 'POST',
@@ -353,8 +399,6 @@ export const adminApi = {
       const responseData = await response.json();
       return responseData.invite_token;
     }
-    
-    return data.invite_token;
   },
   
   async getMembersByCommunity(communityId: string) {
@@ -365,6 +409,40 @@ export const adminApi = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
+    return data;
+  },
+
+  async addMember(member: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    password: string;
+    role: string;
+    status: string;
+    community_id: string;
+  }) {
+    // Get the current session to include auth headers
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Include Authorization header if we have a session
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+    
+    const res = await fetch('/api/member', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(member),
+      credentials: 'include',
+      cache: 'no-cache',
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to add member');
     return data;
   }
 };

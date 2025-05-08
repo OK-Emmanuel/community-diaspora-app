@@ -60,6 +60,20 @@ export default function RegisterPage() {
           if (data && data.community_id) {
             setSelectedCommunity(data.community_id);
             setInviteCommunity(data);
+            
+            // Fetch the community name
+            fetch(`/api/community?id=eq.${data.community_id}`)
+              .then(res => res.json())
+              .then(communityData => {
+                if (communityData && communityData.length > 0) {
+                  // Update the invite community with the actual name
+                  setInviteCommunity({
+                    ...data,
+                    communityName: communityData[0].name
+                  });
+                }
+              })
+              .catch(err => console.error("Error fetching community details:", err));
           }
         });
     } else {
@@ -229,7 +243,7 @@ export default function RegisterPage() {
                   <input
                     id="community"
                     type="text"
-                    value={inviteCommunity.community_id}
+                    value={inviteCommunity.communityName || inviteCommunity.community_id}
                     readOnly
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
                   />

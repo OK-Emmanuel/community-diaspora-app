@@ -182,6 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             first_name: userData.first_name,
             last_name: userData.last_name,
             role: userData.role,
+            community_id: userData.community_id,
           }
         }
       });
@@ -206,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 last_name: userData.last_name,
                 role: userData.role || 'financial',
                 status: 'pending',
+                community_id: userData.community_id,
               })
               .eq('id', existingMember.id);
               
@@ -225,12 +227,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   last_name: userData.last_name,
                   role: userData.role || 'financial',
                   status: 'pending',
+                  community_id: userData.community_id,
                 }
               ], { onConflict: 'id' });
 
             if (profileError) {
               console.error("Profile creation error:", profileError);
               throw profileError;
+            }
+          }
+          
+          // Check if the registration came from an invite link
+          if (userData.community_id && window.location.search.includes('invite=')) {
+            // Extract the invite token from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteToken = urlParams.get('invite');
+            
+            if (inviteToken) {
+              // Accept the invite
+              await fetch('/api/community/invite/accept', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  invite_token: inviteToken,
+                  userId: authData.user.id
+                })
+              });
             }
           }
         } catch (profileError) {

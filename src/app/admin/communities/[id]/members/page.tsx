@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { adminApi } from '@/lib/api';
 import Link from 'next/link';
 import type { Member } from '@/types/database';
+import { Dialog, Transition } from '@headlessui/react';
+import { supabase } from '@/lib/supabase';
 
 export default function CommunityMembersPage({ params }: { params: { id: string } }) {
   const { id: communityId } = params;
@@ -28,6 +30,19 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
     inactive: 0,
     pending: 0
   });
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+    role: 'financial',
+    status: 'active',
+  });
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [addSuccess, setAddSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -143,6 +158,42 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
     }
   };
 
+  // Add member handler
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddLoading(true);
+    setAddError(null);
+    setAddSuccess(null);
+    
+    // Check auth session before adding member
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      setAddError("You must be logged in to add a member. Try refreshing the page.");
+      setAddLoading(false);
+      return;
+    }
+    
+    console.log("Auth check before adding member:", { 
+      loggedIn: !!session, 
+      userId: session?.user?.id,
+      tokenExpiry: new Date(session?.expires_at || 0)
+    });
+    
+    try {
+      await adminApi.addMember({ ...addForm, community_id: communityId });
+      setAddSuccess('Member added successfully!');
+      setAddForm({ first_name: '', last_name: '', email: '', password: '', role: 'financial', status: 'active' });
+      setShowAddModal(false);
+      fetchCommunityMembers();
+    } catch (err: any) {
+      console.error("Error adding member:", err);
+      setAddError(err.message || 'Failed to add member');
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -198,6 +249,14 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
               >
                 Back to Communities
               </Link>
+              {(isSuperAdmin() || (isAdmin() && user?.community_id === communityId)) && (
+                <button
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={() => setShowAddModal(true)}
+                >
+                  Add Member
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -405,6 +464,119 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
           </div>
         </div>
       </main>
+
+      {/* Add Member Modal */}
+      <Transition.Root show={showAddModal} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setShowAddModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100"
+            leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300" enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200" leaveFrom="opacity-100 translate-y-0 sm:scale-100" leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <div>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Add Member</h3>
+                    {addError && <div className="mb-2 text-red-600 text-sm">{addError}</div>}
+                    {addSuccess && <div className="mb-2 text-green-600 text-sm">{addSuccess}</div>}
+                    <form onSubmit={handleAddMember} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">First Name</label>
+                        <input
+                          type="text"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          value={addForm.first_name}
+                          onChange={e => setAddForm(f => ({ ...f, first_name: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input
+                          type="text"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          value={addForm.last_name}
+                          onChange={e => setAddForm(f => ({ ...f, last_name: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <input
+                          type="email"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          value={addForm.email}
+                          onChange={e => setAddForm(f => ({ ...f, email: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Password</label>
+                        <input
+                          type="password"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          value={addForm.password}
+                          onChange={e => setAddForm(f => ({ ...f, password: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Role</label>
+                        <select
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          value={addForm.role}
+                          onChange={e => setAddForm(f => ({ ...f, role: e.target.value }))}
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="financial">Financial</option>
+                          <option value="non_financial">Non-Financial</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Status</label>
+                        <select
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          value={addForm.status}
+                          onChange={e => setAddForm(f => ({ ...f, status: e.target.value }))}
+                        >
+                          <option value="active">Active</option>
+                          <option value="pending">Pending</option>
+                          <option value="suspended">Suspended</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </div>
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          className="mr-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                          onClick={() => setShowAddModal(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                          disabled={addLoading}
+                        >
+                          {addLoading ? 'Adding...' : 'Add Member'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
     </div>
   );
 } 
