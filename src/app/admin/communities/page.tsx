@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
+import Link from 'next/link';
 
 // Community Template Types
 type CommunityTemplate = {
@@ -96,17 +97,28 @@ export default function AdminCommunitiesPage() {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch('/api/community', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user?.id,
+      // Let's add the createCommunity method to adminApi since getAllCommunities is working
+      if (!adminApi.createCommunity) {
+        // If createCommunity doesn't exist in adminApi yet, extend it temporarily
+        const res = await fetch('/api/community', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user?.id,
+            name: newCommunity.name,
+            logo_url: newCommunity.logo_url,
+            favicon_url: newCommunity.favicon_url,
+          }),
+        });
+        if (!res.ok) throw new Error((await res.json()).error || 'Failed to create community');
+      } else {
+        // Use adminApi if the method exists
+        await adminApi.createCommunity({
           name: newCommunity.name,
           logo_url: newCommunity.logo_url,
           favicon_url: newCommunity.favicon_url,
-        }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error || 'Failed to create community');
+        });
+      }
       setNewCommunity({ name: '', logo_url: '', favicon_url: '' });
       fetchCommunitiesSuperadmin();
     } catch (err: any) {
@@ -119,15 +131,11 @@ export default function AdminCommunitiesPage() {
   const handleGenerateInvite = async (communityId: string) => {
     setInviteLinks((prev) => ({ ...prev, [communityId]: 'Generating...' }));
     try {
-      const res = await fetch('/api/community/invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id, community_id: communityId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate invite');
+      // Update to use adminApi
+      const inviteToken = await adminApi.generateCommunityInvite(communityId, user?.id || '');
+      
       // Construct invite link (assuming /register?invite=...)
-      const inviteUrl = `${window.location.origin}/register?invite=${data.invite_token}`;
+      const inviteUrl = `${window.location.origin}/register?invite=${inviteToken}`;
       setInviteLinks((prev) => ({ ...prev, [communityId]: inviteUrl }));
     } catch (err: any) {
       setInviteLinks((prev) => ({ ...prev, [communityId]: err.message }));
@@ -149,16 +157,15 @@ export default function AdminCommunitiesPage() {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch('/api/community', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user?.id,
-          id: editingId,
-          ...editCommunity,
-        }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error || 'Failed to update community');
+      // Update the community using the adminApi
+      await adminApi.updateCommunity(
+        editingId,
+        {
+          name: editCommunity.name,
+          logo_url: editCommunity.logo_url,
+          favicon_url: editCommunity.favicon_url,
+        }
+      );
       setEditingId(null);
       setEditCommunity({ name: '', logo_url: '', favicon_url: '' });
       fetchCommunitiesSuperadmin();
@@ -350,6 +357,12 @@ export default function AdminCommunitiesPage() {
                           >
                             Edit
                           </button>
+                          <Link
+                            href={`/admin/communities/${c.id}/members`}
+                            className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                          >
+                            View Members
+                          </Link>
                           <button
                             className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
                             onClick={() => handleGenerateInvite(c.id)}
@@ -412,6 +425,12 @@ export default function AdminCommunitiesPage() {
                     >
                       Edit
                     </button>
+                    <Link
+                      href={`/admin/communities/${myCommunity.id}/members`}
+                      className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      View Members
+                    </Link>
                     <button
                       className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
                       onClick={() => handleGenerateInvite(myCommunity.id)}

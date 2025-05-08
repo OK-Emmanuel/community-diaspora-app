@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // Helper to check if user is admin or superadmin
 async function isAdminOrSuperAdmin(userId: string) {
@@ -41,8 +42,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  // Create a new community (superadmin or admin)
   const { userId, name, logo_url, favicon_url } = await req.json();
+  const access_token = req.cookies.get('sb-access-token')?.value; // or however you store it
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${access_token}` } } }
+  );
+
+  // Create a new community (superadmin or admin)
   const user = await getUserRoleAndCommunity(userId);
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 403 });
   if (user.role !== 'superadmin' && user.role !== 'admin') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });

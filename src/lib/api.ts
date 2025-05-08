@@ -304,6 +304,68 @@ export const adminApi = {
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
+  },
+  
+  async createCommunity(communityData: { name: string; logo_url?: string; favicon_url?: string }) {
+    const { data, error } = await supabase
+      .from('communities')
+      .insert([communityData])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+  
+  async updateCommunity(communityId: string, communityData: { name: string; logo_url?: string; favicon_url?: string }) {
+    const { data, error } = await supabase
+      .from('communities')
+      .update(communityData)
+      .eq('id', communityId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+  
+  async generateCommunityInvite(communityId: string, userId: string) {
+    // Generate invite token through RPC function or direct table insert
+    const { data, error } = await supabase
+      .rpc('generate_community_invite', {
+        community_id_param: communityId, 
+        user_id_param: userId
+      });
+    
+    if (error) {
+      // If RPC is not available, try direct API call
+      const response = await fetch('/api/community/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, community_id: communityId }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate invite');
+      }
+      
+      const responseData = await response.json();
+      return responseData.invite_token;
+    }
+    
+    return data.invite_token;
+  },
+  
+  async getMembersByCommunity(communityId: string) {
+    const { data, error } = await supabase
+      .from('members')
+      .select('*, non_financial_members(*)')
+      .eq('community_id', communityId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
   }
 };
 
