@@ -221,7 +221,7 @@ export default function AddDependentPage() {
               isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
-            {isSubmitting ? 'Adding...' : 'Add Dependant'}
+            {isSubmitting ? 'Adding...' : 'Save Dependant'}
           </button>
         </div>
       </form>

@@ -128,9 +128,9 @@
 - [x] On registration, only allow financial membership type; non-financial members are added by financial members.
 
 ## Bugs & UX Improvements
-- [ ] Add a button for members to view a log of their record and those of their dependants.
-- [ ] Update save button text to "save record" or "save dependant" as appropriate.
-- [ ] Fix date of birth input error for financial members.
+- [x] Add a button for members to view a log of their record and those of their dependants.
+- [x] Update save button text to "save record" or "save dependant" as appropriate.
+- [x] Fix date of birth input error for financial members.
 
 ## Priority Order for Development:
 1. Project setup and authentication (done)

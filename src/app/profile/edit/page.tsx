@@ -248,7 +248,7 @@ export default function EditProfilePage() {
               isSaving ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? 'Saving...' : 'Save Record'}
           </button>
         </div>
       </form>

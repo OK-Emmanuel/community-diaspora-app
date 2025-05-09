@@ -352,7 +352,7 @@ export default function EditDependentPage({ params }: { params: { id: string } }
               isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            {isSubmitting ? 'Saving...' : 'Save Dependant'}
           </button>
         </div>
       </form>
