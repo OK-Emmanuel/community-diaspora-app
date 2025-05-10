@@ -247,10 +247,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Accept the invite
               await fetch('/api/community/invite/accept', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session?.access_token}`
+                },
                 body: JSON.stringify({
-                  invite_token: inviteToken,
-                  userId: authData.user.id
+                  invite_token: inviteToken
                 })
               });
             }

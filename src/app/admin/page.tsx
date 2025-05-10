@@ -47,7 +47,6 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user?.id,
           name: newCommunity.name,
           logo_url: newCommunity.logo_url,
           favicon_url: newCommunity.favicon_url,
@@ -69,7 +68,7 @@ export default function AdminPage() {
       const res = await fetch('/api/community/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id, community_id: communityId }),
+        body: JSON.stringify({ community_id: communityId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to generate invite');

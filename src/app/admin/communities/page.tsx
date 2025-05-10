@@ -87,7 +87,7 @@ export default function AdminCommunitiesPage() {
   };
 
   const fetchMyCommunity = async () => {
-    const res = await fetch(`/api/community?id=eq.${user?.community_id}`);
+    const res = await fetch(`/api/community`);
     const data = await res.json();
     setMyCommunity(Array.isArray(data) && data[0] ? data[0] : null);
   };
@@ -104,7 +104,6 @@ export default function AdminCommunitiesPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: user?.id,
             name: newCommunity.name,
             logo_url: newCommunity.logo_url,
             favicon_url: newCommunity.favicon_url,

@@ -376,11 +376,23 @@ export const adminApi = {
     } catch (error) {
       console.log("Falling back to direct API call for invite generation");
       
+      // Get the current session to include auth headers
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Include Authorization header if we have a session
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      
       // If RPC is not available, try direct API call
       const response = await fetch('/api/community/invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, community_id: communityId }),
+        headers,
+        body: JSON.stringify({ community_id: communityId }),
       });
       
       if (!response.ok) {

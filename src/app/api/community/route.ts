@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
 // Helper to check if user is admin or superadmin
 async function isAdminOrSuperAdmin(userId: string) {
@@ -22,12 +23,65 @@ async function getUserRoleAndCommunity(userId: string) {
   return data;
 }
 
+// Extract user ID from request
+async function extractUserId(req: NextRequest): Promise<string | null> {
+  // Try to get userId from authorization header
+  const authHeader = req.headers.get('authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    try {
+      const { data: userData, error } = await supabase.auth.getUser(token);
+      if (!error && userData?.user?.id) {
+        return userData.user.id;
+      }
+    } catch (e) {
+      console.error('Error extracting user ID from token:', e);
+    }
+  }
+  
+  // Try to get userId from cookies
+  const cookieStore = cookies();
+  const allCookies = cookieStore.getAll();
+  
+  // Try different possible cookie names (Supabase can use different formats)
+  let supabaseAuthCookie = cookieStore.get('sb-auth-token')?.value;
+  
+  if (!supabaseAuthCookie) {
+    // Try alternative cookie formats
+    const sbCookie = allCookies.find(c => 
+      c.name.startsWith('sb-') && c.name.includes('auth')
+    );
+    
+    if (sbCookie) {
+      supabaseAuthCookie = sbCookie.value;
+    }
+  }
+  
+  if (supabaseAuthCookie) {
+    try {
+      const session = JSON.parse(supabaseAuthCookie);
+      if (session?.user?.id) {
+        return session.user.id;
+      }
+    } catch (e) {
+      console.error('Failed to parse auth cookie:', e);
+    }
+  }
+  
+  return null;
+}
+
 export async function GET(req: NextRequest) {
+  // Extract user ID from the request
+  const userId = await extractUserId(req);
+  if (!userId) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+
   // List communities: superadmin sees all, admin sees only their own
-  const userId = req.nextUrl.searchParams.get('userId');
-  if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
   const user = await getUserRoleAndCommunity(userId);
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 403 });
+  
   if (user.role === 'superadmin') {
     const { data, error } = await supabase.from('communities').select('*');
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -42,7 +96,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { userId, name, logo_url, favicon_url } = await req.json();
+  // Extract user ID from the request
+  const userId = await extractUserId(req);
+  if (!userId) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+
+  const { name, logo_url, favicon_url } = await req.json();
   const access_token = req.cookies.get('sb-access-token')?.value; // or however you store it
 
   const supabase = createClient(
@@ -62,8 +122,14 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  // Extract user ID from the request
+  const userId = await extractUserId(req);
+  if (!userId) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+
   // Update a community (superadmin or admin for their own)
-  const { userId, id, ...fields } = await req.json();
+  const { id, ...fields } = await req.json();
   const user = await getUserRoleAndCommunity(userId);
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 403 });
   if (user.role === 'superadmin') {
@@ -80,8 +146,14 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  // Extract user ID from the request
+  const userId = await extractUserId(req);
+  if (!userId) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+  
   // Delete a community (superadmin or admin for their own)
-  const { userId, id } = await req.json();
+  const { id } = await req.json();
   const user = await getUserRoleAndCommunity(userId);
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 403 });
   if (user.role === 'superadmin') {
