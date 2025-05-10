@@ -186,7 +186,7 @@ export default function AdminPage() {
             </div>
 
             {/* Events Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            {/* <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
@@ -208,10 +208,10 @@ export default function AdminPage() {
                   </Link>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Contributions Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            {/* <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-red-500 rounded-md p-3">
@@ -233,7 +233,7 @@ export default function AdminPage() {
                   </Link>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </main>
