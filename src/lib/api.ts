@@ -46,7 +46,8 @@ export const membersApi = {
     return data;
   },
 
-  async addDependent(dependent: Omit<NonFinancialMember, 'id' | 'created_at' | 'updated_at'>) {
+  async addDependent(dependent: Omit<NonFinancialMember, 'id' | 'created_at' | 'updated_at' | 'community_id'>) {
+    // The community_id will be set by a database trigger ('auto_set_dependent_community_id_from_parent')
     const { data, error } = await supabase
       .from('non_financial_members')
       .insert([dependent])
@@ -99,25 +100,13 @@ export const postsApi = {
     return data;
   },
 
-  async createPost(post: Omit<Post, 'id' | 'created_at' | 'updated_at' | 'likes_count' | 'comments_count'>) {
-    // Get the user's community_id
-    const { data: userData, error: userError } = await supabase
-      .from('members')
-      .select('community_id')
-      .eq('id', post.author_id)
-      .single();
-    
-    if (userError) throw userError;
-    
-    // Add community_id to the post
-    const postWithCommunity = {
-      ...post,
-      community_id: userData?.community_id
-    };
-    
+  async createPost(post: Omit<Post, 'id' | 'created_at' | 'updated_at' | 'likes_count' | 'comments_count' | 'community_id'>) {
+    // The community_id will be set by a database trigger ('auto_set_post_community_id_from_author')
+    // if not provided or if provided as null.
+    // The RLS policies and another trigger ('enforce_community_match_trigger') will ensure consistency.
     const { data, error } = await supabase
       .from('posts')
-      .insert([postWithCommunity])
+      .insert([post]) // Send the post object directly; community_id is handled by DB
       .select()
       .single();
     
@@ -163,7 +152,8 @@ export const postsApi = {
     return data;
   },
 
-  async addComment(comment: Omit<Comment, 'id' | 'created_at' | 'updated_at' | 'likes_count'>, actorId: string) {
+  async addComment(comment: Omit<Comment, 'id' | 'created_at' | 'updated_at' | 'likes_count' | 'community_id'>, actorId: string) {
+    // The community_id will be set by a database trigger ('auto_set_comment_community_id_from_post')
     const { data, error } = await supabase
       .from('comments')
       .insert([comment])
@@ -226,7 +216,9 @@ export const announcementsApi = {
     return data;
   },
 
-  async createAnnouncement(announcement: Omit<Announcement, 'id' | 'created_at' | 'updated_at'>) {
+  async createAnnouncement(announcement: Omit<Announcement, 'id' | 'created_at' | 'updated_at' | 'community_id'>) {
+    // The community_id will be set by a database trigger ('auto_set_announcement_community_id_from_author')
+    // or should be explicitly NULL for global announcements by superadmins.
     const { data, error } = await supabase
       .from('announcements')
       .insert([announcement])

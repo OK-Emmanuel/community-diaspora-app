@@ -164,3 +164,13 @@
 - [x] Add service role key to Vercel
 - [x] Document deployment process
 
+In case superadmin access is denied using jwt auth, use the following sql to grant access:
+
+Reviewing Policies for communities:
+The current policies grant full control over the communities table to superadmins.
+
+// to be used in the future
+The specific policies (Superadmins can create communities, ...delete all communities, etc.) that check EXISTS (SELECT 1 FROM members WHERE members.id = auth.uid() AND members.role = 'superadmin'::user_role) are fine.
+
+//current policy
+The Superadmins can do all things policy which uses the JWT check ((auth.jwt() ->> 'role'::text) = 'superadmin'::text) OR ... is also a valid way to grant superadmin privileges.

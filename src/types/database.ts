@@ -94,6 +94,7 @@ export interface Post {
   likes_count: number;
   comments_count: number;
   image_url?: string;
+  community_id?: string;
 }
 
 export interface PostWithAuthor extends Post {
@@ -115,6 +116,7 @@ export interface Comment {
   parent_comment_id?: string;
   created_at: string;
   updated_at: string;
+  community_id?: string;
 }
 
 export interface CommentWithAuthor extends Comment {
@@ -136,6 +138,7 @@ export interface Announcement {
   type: 'general' | 'financial' | 'event' | 'emergency';
   is_pinned: boolean;
   expires_at?: string | null;
+  community_id?: string;
 }
 
 export interface AnnouncementWithAuthor extends Announcement {
@@ -195,6 +198,14 @@ export interface Contribution {
   updated_at: Date;
 }
 
+export interface Like {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: Date;
+  community_id?: string;
+}
+
 export interface Database {
   members: Member;
   non_financial_members: NonFinancialMember;
@@ -207,4 +218,5 @@ export interface Database {
   contributions: Contribution;
   communities: Community;
   community_invites: CommunityInvite;
+  likes: Like;
 } 

@@ -297,7 +297,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"author_id\": \"{{USER_ID}}\",\n  \"title\": \"Announcement Title\",\n  \"content\": \"Announcement body.\",\n  \"type\": \"general\"\n}"
+          "raw": "{\n  \"author_id\": \"{{USER_ID}}\",\n  \"title\": \"Announcement Title\",\n  \"content\": \"Announcement body.\",\n  \"type\": \"general\",\n  \"community_id\": \"{{TARGET_COMMUNITY_ID_OR_NULL}}\"\n}"
         }
       }
     },
@@ -573,6 +573,7 @@
     { "key": "JWT", "value": "" },
     { "key": "POST_ID", "value": "" },
     { "key": "COMMUNITY_ID", "value": "" },
-    { "key": "INVITE_TOKEN", "value": "" }
+    { "key": "INVITE_TOKEN", "value": "" },
+    { "key": "TARGET_COMMUNITY_ID_OR_NULL", "value": "" }
   ]
 } 

@@ -1,0 +1,221 @@
+schema_name,table_name,policy_name,command_type,roles,using_expression,with_check_expression
+public,announcements,Admins can create announcements,a,authenticated,null,"((EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND ((announcements.community_id = m.community_id) OR (announcements.community_id IS NULL))))) AND (author_id = auth.uid()))"
+public,announcements,Admins can delete their announcements,d,authenticated,"((author_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND ((announcements.community_id = m.community_id) OR (announcements.community_id IS NULL))))))",null
+public,announcements,Admins can update their announcements,w,authenticated,"((author_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND ((announcements.community_id = m.community_id) OR (announcements.community_id IS NULL))))))","((author_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND ((announcements.community_id = m.community_id) OR (announcements.community_id IS NULL))))))"
+public,announcements,Members can view relevant announcements,r,authenticated,"((community_id IS NULL) OR (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.community_id = announcements.community_id)))))",null
+public,announcements,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,announcements,Superadmins have full control over announcements,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))","(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))"
+public,comments,Admins can delete comments in their community,d,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = comments.community_id))))",null
+public,comments,Authors can delete their own comments,d,authenticated,(author_id = auth.uid()),null
+public,comments,Authors can update their own comments,w,authenticated,(author_id = auth.uid()),"((author_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.community_id = comments.community_id)))))"
+public,comments,Members can create comments,a,authenticated,null,"((author_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.community_id = comments.community_id) AND (m.status = 'active'::member_status)))) AND (EXISTS ( SELECT 1
+   FROM posts p
+  WHERE ((p.id = comments.post_id) AND (p.community_id = comments.community_id)))))"
+public,comments,Members can view comments in their community,r,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.community_id = comments.community_id))))",null
+public,comments,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,comments,Superadmins have full control over comments,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))","(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))"
+public,communities,Admins can update their own community details,w,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = communities.id))))","(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = communities.id))))"
+public,communities,Admins can view their own community details,r,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = communities.id))))",null
+public,communities,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,communities,Superadmins have full control over communities,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))","(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))"
+public,community_invites,Admins can create invites for their community,a,authenticated,null,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = community_invites.community_id))))"
+public,community_invites,Admins can delete invites for their community,d,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = community_invites.community_id))))",null
+public,community_invites,Admins can update invites for their community,w,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = community_invites.community_id))))","((EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = community_invites.community_id)))) AND (community_id = ( SELECT ci.community_id
+   FROM community_invites ci
+  WHERE (ci.id = community_invites.id))) AND (invite_token = ( SELECT ci.invite_token
+   FROM community_invites ci
+  WHERE (ci.id = community_invites.id))))"
+public,community_invites,Admins can view invites for their community,r,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = community_invites.community_id))))",null
+public,community_invites,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,contributions,Admins can view all contributions,r,public,"(EXISTS ( SELECT 1
+   FROM members
+  WHERE ((members.id = auth.uid()) AND (members.role = 'admin'::user_role))))",null
+public,contributions,Superadmins can do all things,*,public,(((auth.jwt() ->> 'role'::text) = 'superadmin'::text) OR ((((auth.jwt() -> 'user_metadata'::text) ->> 'is_super_admin'::text))::boolean = true)),null
+public,contributions,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,contributions,Users can view their contributions,r,public,(member_id = auth.uid()),null
+public,event_registrations,Superadmins can do all things,*,public,(((auth.jwt() ->> 'role'::text) = 'superadmin'::text) OR ((((auth.jwt() -> 'user_metadata'::text) ->> 'is_super_admin'::text))::boolean = true)),null
+public,event_registrations,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,event_registrations,Users can register for events,a,public,null,(member_id = auth.uid())
+public,event_registrations,Users can view their registrations,r,public,(member_id = auth.uid()),null
+public,events,Admins can manage events,*,public,"(EXISTS ( SELECT 1
+   FROM members
+  WHERE ((members.id = auth.uid()) AND (members.role = 'admin'::user_role))))","(EXISTS ( SELECT 1
+   FROM members
+  WHERE ((members.id = auth.uid()) AND (members.role = 'admin'::user_role))))"
+public,events,Anyone can view events,r,public,true,null
+public,events,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,likes,Members can like posts in their community,a,authenticated,null,"((user_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM (members m
+     JOIN posts p ON ((m.community_id = p.community_id)))
+  WHERE ((m.id = auth.uid()) AND (p.id = likes.post_id)))) AND (community_id IS NOT NULL))"
+public,likes,Members can unlike posts they liked,d,authenticated,"((user_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM (members m
+     JOIN posts p ON ((m.community_id = p.community_id)))
+  WHERE ((m.id = auth.uid()) AND (p.id = likes.post_id)))))",null
+public,likes,Members can view likes in their community,r,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.community_id = likes.community_id))))",null
+public,likes,Superadmins can do all things,*,public,(((auth.jwt() ->> 'role'::text) = 'superadmin'::text) OR ((((auth.jwt() -> 'user_metadata'::text) ->> 'is_super_admin'::text))::boolean = true)),null
+public,likes,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,members,Admins can update member profiles in their community,w,authenticated,"((EXISTS ( SELECT 1
+   FROM members m_admin
+  WHERE ((m_admin.id = auth.uid()) AND (m_admin.role = 'admin'::user_role) AND (m_admin.community_id = members.community_id)))) AND (id <> auth.uid()))","((EXISTS ( SELECT 1
+   FROM members m_admin
+  WHERE ((m_admin.id = auth.uid()) AND (m_admin.role = 'admin'::user_role) AND (m_admin.community_id = members.community_id)))) AND (id <> auth.uid()) AND ((role <> ALL (ARRAY['admin'::user_role, 'superadmin'::user_role])) OR (role = ( SELECT m.role
+   FROM members m
+  WHERE (m.id = members.id)))) AND (community_id = ( SELECT m.community_id
+   FROM members m
+  WHERE (m.id = members.id))))"
+public,members,Admins can view member profiles in their community,r,authenticated,"(EXISTS ( SELECT 1
+   FROM members m_admin
+  WHERE ((m_admin.id = auth.uid()) AND (m_admin.role = 'admin'::user_role) AND (m_admin.community_id = members.community_id))))",null
+public,members,Members can update their own profile,w,authenticated,(id = auth.uid()),"((id = auth.uid()) AND (role = ( SELECT m.role
+   FROM members m
+  WHERE (m.id = auth.uid()))) AND (community_id = ( SELECT m.community_id
+   FROM members m
+  WHERE (m.id = auth.uid()))))"
+public,members,Members can view other members in their community,r,authenticated,"(EXISTS ( SELECT 1
+   FROM members m_viewer
+  WHERE ((m_viewer.id = auth.uid()) AND (m_viewer.community_id = members.community_id))))",null
+public,members,Members can view their own full profile,r,authenticated,(id = auth.uid()),null
+public,members,New users can create their profile (with role protection),a,"authenticated, anon",null,"(true AND ((role IS NULL) OR (role = ANY (ARRAY['financial'::user_role, 'non_financial'::user_role]))))"
+public,members,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,members,Superadmins have full control over members,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))","(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))"
+public,non_financial_members,Admins can update dependent records in their community,w,authenticated,"(EXISTS ( SELECT 1
+   FROM members m_admin
+  WHERE ((m_admin.id = auth.uid()) AND (m_admin.role = 'admin'::user_role) AND (m_admin.community_id = non_financial_members.community_id))))","((EXISTS ( SELECT 1
+   FROM members m_admin
+  WHERE ((m_admin.id = auth.uid()) AND (m_admin.role = 'admin'::user_role) AND (m_admin.community_id = non_financial_members.community_id)))) AND (member_id = ( SELECT nfm.member_id
+   FROM non_financial_members nfm
+  WHERE (nfm.id = non_financial_members.id))) AND (auth_user_id = ( SELECT nfm.auth_user_id
+   FROM non_financial_members nfm
+  WHERE (nfm.id = non_financial_members.id))))"
+public,non_financial_members,Admins can view dependents in their community,r,authenticated,"(EXISTS ( SELECT 1
+   FROM members m_admin
+  WHERE ((m_admin.id = auth.uid()) AND (m_admin.role = 'admin'::user_role) AND (m_admin.community_id = non_financial_members.community_id))))",null
+public,non_financial_members,"Dependents can update their own record (e.g., request upgrade)",w,authenticated,((auth_user_id IS NOT NULL) AND (auth_user_id = auth.uid())),"((auth_user_id = auth.uid()) AND (member_id = ( SELECT nfm.member_id
+   FROM non_financial_members nfm
+  WHERE (nfm.id = non_financial_members.id))) AND (status = ( SELECT nfm.status
+   FROM non_financial_members nfm
+  WHERE (nfm.id = non_financial_members.id))) AND (community_id = ( SELECT nfm.community_id
+   FROM non_financial_members nfm
+  WHERE (nfm.id = non_financial_members.id))))"
+public,non_financial_members,Dependents can view their own record (if an auth user),r,authenticated,((auth_user_id IS NOT NULL) AND (auth_user_id = auth.uid())),null
+public,non_financial_members,Financial members can add their own dependents,a,authenticated,null,"((member_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'financial'::user_role)))) AND (community_id = ( SELECT m_parent.community_id
+   FROM members m_parent
+  WHERE (m_parent.id = auth.uid()))))"
+public,non_financial_members,Financial members can delete their own dependents,d,authenticated,"((member_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'financial'::user_role)))))",null
+public,non_financial_members,Financial members can update their own dependents,w,authenticated,"((member_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'financial'::user_role)))))","((member_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'financial'::user_role)))) AND ((auth_user_id IS NULL) OR (auth_user_id = ( SELECT nfm.auth_user_id
+   FROM non_financial_members nfm
+  WHERE (nfm.id = non_financial_members.id)))) AND (community_id = ( SELECT m_parent.community_id
+   FROM members m_parent
+  WHERE (m_parent.id = auth.uid()))))"
+public,non_financial_members,Financial members can view their own dependents,r,authenticated,(member_id = auth.uid()),null
+public,non_financial_members,Superadmins can do all things,*,public,(((auth.jwt() ->> 'role'::text) = 'superadmin'::text) OR ((((auth.jwt() -> 'user_metadata'::text) ->> 'is_super_admin'::text))::boolean = true)),null
+public,non_financial_members,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,notifications,Superadmins can do all things,*,public,(((auth.jwt() ->> 'role'::text) = 'superadmin'::text) OR ((((auth.jwt() -> 'user_metadata'::text) ->> 'is_super_admin'::text))::boolean = true)),null
+public,notifications,Superadmins have full control,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = ( SELECT auth.uid() AS uid)) AND (m.role = 'superadmin'::user_role))))",null
+public,notifications,Users can insert their own notifications,a,public,null,(member_id = auth.uid())
+public,notifications,Users can update their own notifications,w,public,(member_id = auth.uid()),(member_id = auth.uid())
+public,notifications,Users can view their own notifications,r,public,(member_id = auth.uid()),null
+public,posts,Admins can delete posts in their community,d,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = posts.community_id))))",null
+public,posts,Admins can update posts in their community,w,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = posts.community_id))))","(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'admin'::user_role) AND (m.community_id = posts.community_id))))"
+public,posts,Authors can delete their own posts,d,authenticated,(author_id = auth.uid()),null
+public,posts,Authors can update their own posts,w,authenticated,(author_id = auth.uid()),(author_id = auth.uid())
+public,posts,Members can create posts,a,authenticated,null,"((author_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.community_id IS NOT NULL) AND (m.status = 'active'::member_status)))))"
+public,posts,Members can view posts from their own community,r,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.community_id = posts.community_id))))",null
+public,posts,Superadmins have full control over posts,*,authenticated,"(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))","(EXISTS ( SELECT 1
+   FROM members m
+  WHERE ((m.id = auth.uid()) AND (m.role = 'superadmin'::user_role))))"
