@@ -21,12 +21,13 @@ const registerSchema = z.object({
     .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
     .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
   confirmPassword: z.string(),
+  communityId: z.string().min(1, { message: "Please select a community" }),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 });
 
-type RegisterFormData = Omit<z.infer<typeof registerSchema>, 'role'>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 // This component contains the actual form logic and uses useSearchParams
 function RegisterFormContents() {
@@ -39,9 +40,18 @@ function RegisterFormContents() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      communityId: '',
+    }
   });
 
   const [communities, setCommunities] = useState<any[]>([]);
@@ -50,57 +60,57 @@ function RegisterFormContents() {
   const [inviteCommunity, setInviteCommunity] = useState<any>(null);
 
   useEffect(() => {
-    // Check for invite token in URL
     const token = searchParams.get('invite');
     if (token) {
       setInviteToken(token);
-      // Fetch invite details
       fetch(`/api/community/invite?invite_token=${token}`)
         .then(res => res.json())
         .then(data => {
           if (data && data.community_id) {
             setSelectedCommunity(data.community_id);
             setInviteCommunity(data);
+            setValue('communityId', data.community_id, { shouldValidate: true });
             
-            // Fetch the community name
             fetch(`/api/community?id=eq.${data.community_id}`)
               .then(res => res.json())
               .then(communityData => {
                 if (communityData && communityData.length > 0) {
-                  // Update the invite community with the actual name
-                  setInviteCommunity({
-                    ...data,
-                    communityName: communityData[0].name
-                  });
+                  setInviteCommunity((prev: any) => ({ ...prev, communityName: communityData[0].name }));
                 }
               })
               .catch(err => console.error("Error fetching community details:", err));
+          } else {
+            setInviteCommunity(null);
+            setInviteToken(null);
+            setValue('communityId', '', { shouldValidate: true });
           }
         })
-        .catch(err => console.error("Error fetching invite details:", err));
+        .catch(err => {
+          console.error("Error fetching invite details:", err);
+          setInviteCommunity(null);
+          setInviteToken(null);
+          setValue('communityId', '', { shouldValidate: true });
+        });
     } else {
-      // Fetch all communities for selection
+      setInviteCommunity(null);
+      setInviteToken(null);
+      setValue('communityId', '', { shouldValidate: true });
       fetch('/api/community')
         .then(res => res.json())
         .then(data => setCommunities(data))
         .catch(err => console.error("Error fetching communities:", err));
     }
-  }, [searchParams]);
+  }, [searchParams, setValue]);
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsSubmitting(true);
       setSubmitError(null);
-      if (!selectedCommunity) {
-        setSubmitError('Please select a community.');
-        setIsSubmitting(false);
-        return;
-      }
       await signUp(data.email, data.password, {
         first_name: data.firstName,
         last_name: data.lastName,
         role: 'financial',
-        community_id: selectedCommunity,
+        community_id: data.communityId,
       });
       // On successful registration
       router.push('/login?registered=true');
@@ -244,7 +254,7 @@ function RegisterFormContents() {
                 </label>
                 {inviteCommunity ? (
                   <input
-                    id="community"
+                    id="communityDisplay"
                     type="text"
                     value={inviteCommunity.communityName || inviteCommunity.community_id}
                     readOnly
@@ -254,9 +264,7 @@ function RegisterFormContents() {
                   <select
                     id="community"
                     {...register('communityId')}
-                    onChange={(e) => setSelectedCommunity(e.target.value)}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    defaultValue=""
                   >
                     <option value="" disabled>Select a community</option>
                     {communities.map((community) => (
