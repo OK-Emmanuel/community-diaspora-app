@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -28,7 +28,8 @@ const registerSchema = z.object({
 
 type RegisterFormData = Omit<z.infer<typeof registerSchema>, 'role'>;
 
-export default function RegisterPage() {
+// This component contains the actual form logic and uses useSearchParams
+function RegisterFormContents() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { signUp } = useAuth();
@@ -43,7 +44,7 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
-  const [communities, setCommunities] = useState([]);
+  const [communities, setCommunities] = useState<any[]>([]);
   const [selectedCommunity, setSelectedCommunity] = useState<string | null>(null);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [inviteCommunity, setInviteCommunity] = useState<any>(null);
@@ -75,12 +76,14 @@ export default function RegisterPage() {
               })
               .catch(err => console.error("Error fetching community details:", err));
           }
-        });
+        })
+        .catch(err => console.error("Error fetching invite details:", err));
     } else {
       // Fetch all communities for selection
       fetch('/api/community')
         .then(res => res.json())
-        .then(data => setCommunities(data));
+        .then(data => setCommunities(data))
+        .catch(err => console.error("Error fetching communities:", err));
     }
   }, [searchParams]);
 
@@ -112,7 +115,7 @@ export default function RegisterPage() {
         } else if (error.message.includes('Email rate limit exceeded')) {
           setSubmitError('Too many signup attempts. Please try again later.');
         } else {
-          setSubmitError(error.message);
+          setSubmitError(error.message || 'An unexpected error occurred during registration.');
         }
       } else {
         setSubmitError('An unexpected error occurred during registration');
@@ -250,36 +253,22 @@ export default function RegisterPage() {
                 ) : (
                   <select
                     id="community"
-                    value={selectedCommunity || ''}
-                    onChange={e => setSelectedCommunity(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                    {...register('communityId')}
+                    onChange={(e) => setSelectedCommunity(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    defaultValue=""
                   >
-                    <option value="">Select a community</option>
-                    {communities.map((c: any) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                    <option value="" disabled>Select a community</option>
+                    {communities.map((community) => (
+                      <option key={community.id} value={community.id}>
+                        {community.name}
+                      </option>
                     ))}
                   </select>
                 )}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Membership Type</label>
-                <div className="mt-2">
-                  <div className="flex items-center">
-                    <input
-                      id="financial"
-                      type="radio"
-                      value="financial"
-                      checked
-                      readOnly
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                    />
-                    <label htmlFor="financial" className="ml-3 block text-sm font-medium text-gray-700">
-                      Financial Member (Can vote, post, and comment)
-                    </label>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">All new members are registered as financial members. You can request an upgrade or change later.</p>
-                </div>
+                {errors.communityId && (
+                  <p className="mt-1 text-sm text-red-600">{errors.communityId.message}</p>
+                )}
               </div>
             </div>
           </div>
@@ -288,8 +277,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 
-                ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'}`}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
               {isSubmitting ? 'Creating account...' : 'Create account'}
             </button>
@@ -297,5 +285,14 @@ export default function RegisterPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+// Default export for the page, wrapping the form contents with Suspense
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div>Loading registration form...</div>}>
+      <RegisterFormContents />
+    </Suspense>
   );
 } 
