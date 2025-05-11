@@ -249,7 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 method: 'POST',
                 headers: { 
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session?.access_token}`
+                  'Authorization': `Bearer ${authData.session?.access_token}`
                 },
                 body: JSON.stringify({
                   invite_token: inviteToken
