@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { notificationsApi } from '@/lib/api';
+import { notificationsApi, adminApi } from '@/lib/api';
 
-export default function Navbar({ branding }: { branding?: { name: string; logo_url?: string } }) {
+export default function Navbar() {
   const { user, signOut, loading, isAdmin, isSuperAdmin } = useAuth();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [community, setCommunity] = useState<{ name: string; logo_url?: string } | null>(null);
+  const defaultLogo = 'https://i.pinimg.com/474x/54/81/0a/54810acebbc96214ac3b2fa2f1bb8aba.jpg';
+  const defaultName = 'Diaspora Community';
   
   // Close the mobile menu when navigating to a new page
   useEffect(() => {
@@ -23,6 +26,17 @@ export default function Navbar({ branding }: { branding?: { name: string; logo_u
       fetchUnreadCount();
     }
   }, [user, loading, pathname]);
+
+  useEffect(() => {
+    if (user?.community_id && !isSuperAdmin()) {
+      adminApi.getAllCommunities().then(communities => {
+        const found = communities.find((c: any) => c.id === user.community_id);
+        setCommunity(found || null);
+      });
+    } else {
+      setCommunity(null);
+    }
+  }, [user, isSuperAdmin]);
 
   const fetchUnreadCount = async () => {
     try {
@@ -41,7 +55,7 @@ export default function Navbar({ branding }: { branding?: { name: string; logo_u
     return pathname === path || pathname?.startsWith(`${path}/`);
   };
 
-  const isDefaultName = !branding || branding.name === 'Diaspora Community';
+  const isDefaultName = !community || community.name === 'Diaspora Community';
 
   return (
     <nav className="bg-blue-600 shadow-md">
@@ -49,15 +63,15 @@ export default function Navbar({ branding }: { branding?: { name: string; logo_u
         <div className="flex justify-between h-16 items-center">
           <div className="flex flex-col items-start gap-0">
             <div className="flex items-center gap-3">
-              {branding?.logo_url && (
-                <img src={branding.logo_url} alt="Logo" className="h-8 w-8 rounded-full bg-white" />
+              {(community?.logo_url || defaultLogo) && (
+                <img src={community?.logo_url || defaultLogo} alt="Logo" className="h-8 w-8 rounded-full bg-white" />
               )}
               <span className="font-bold text-lg text-gray-100">
-                {branding?.name || 'Diaspora Community'}
+                {community?.name || defaultName}
               </span>
             </div>
             {!isDefaultName && (
-              <span className="text-xs text-gray-500 ml-11">Diaspora Community Platform</span>
+              <span className="text-xs text-gray-700 ml-11">Diaspora Community Platform</span>
             )}
           </div>
           
