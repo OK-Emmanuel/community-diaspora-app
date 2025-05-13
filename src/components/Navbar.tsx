@@ -104,7 +104,7 @@ export default function Navbar({ branding }: { branding?: { name: string; logo_u
                         : 'text-blue-50 hover:bg-blue-500'
                     }`}
                   >
-                    Admin
+                    Members
                   </Link>
                 )}
                 

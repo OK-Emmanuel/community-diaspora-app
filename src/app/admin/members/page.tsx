@@ -154,12 +154,6 @@ export default function AdminMembersPage() {
             <h1 className="text-3xl font-bold text-gray-900">Member Management</h1>
             <div className="flex space-x-4">
               <Link 
-                href="/admin" 
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-              >
-                Back to Admin
-              </Link>
-              <Link 
                 href="/admin/members/add" 
                 className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
               >
