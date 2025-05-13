@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { membersApi, adminApi } from '@/lib/api';
-import type { NonFinancialMember, Member, Community } from '@/types/database';
+import type { NonFinancialMember, Member, Community as BaseCommunity } from '@/types/database';
 import Link from 'next/link';
+
+// Extend the Community type to include status for dashboard stats
+type Community = BaseCommunity & { status?: 'active' | 'inactive' | 'pending' | 'suspended' };
 
 export default function DashboardPage() {
   const { user, signOut, isAdmin, isSuperAdmin, isFinancialMember } = useAuth();
@@ -117,9 +120,9 @@ export default function DashboardPage() {
                     <StatCard label="Total Communities" value={communities.length} color="blue" href="/admin/communities" />
                     <StatCard label="Total Members" value={members.length} color="green" href="/admin/members" />
                     <StatCard label="Admins" value={members.filter((m) => m.role === 'admin').length} color="purple" href="/admin/members?role=admin" />
-                    <StatCard label="Superadmins" value={members.filter((m) => m.role === 'superadmin').length} color="yellow" href="/admin/members?role=superadmin" />
-                    <StatCard label="Active Communities" value={communities.filter((c) => members.some((m) => m.community_id === c.id && m.status === 'active')).length} color="emerald" href="/admin/communities?status=active" />
-                    <StatCard label="Inactive Communities" value={communities.length - communities.filter((c) => members.some((m) => m.community_id === c.id && m.status === 'active')).length} color="red" href="/admin/communities?status=inactive" />
+                    {/* <StatCard label="Superadmins" value={members.filter((m) => m.role === 'superadmin').length} color="yellow" href="/admin/members?role=superadmin" /> */}
+                    <StatCard label="Active Communities" value={communities.filter((c) => c.status === 'active').length} color="emerald" href="/admin/communities?status=active" />
+                    <StatCard label="Inactive Communities" value={communities.filter((c) => c.status !== 'active').length} color="red" href="/admin/communities?status=inactive" />
                     <StatCard label="Active Members" value={members.filter((m) => m.status === 'active').length} color="emerald" href="/admin/members?status=active" />
                     <StatCard label="Inactive Members" value={members.filter((m) => m.status !== 'active').length} color="red" href="/admin/members?status=inactive" />
                   </div>

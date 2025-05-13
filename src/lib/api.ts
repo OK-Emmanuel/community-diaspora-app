@@ -335,7 +335,7 @@ export const adminApi = {
     return data;
   },
   
-  async createCommunity(communityData: { name: string; logo_url?: string; favicon_url?: string }) {
+  async createCommunity(communityData: { name: string; logo_url?: string; favicon_url?: string; status: string }) {
     const { data, error } = await supabase
       .from('communities')
       .insert([communityData])
@@ -346,7 +346,7 @@ export const adminApi = {
     return data;
   },
   
-  async updateCommunity(communityId: string, communityData: { name: string; logo_url?: string; favicon_url?: string }) {
+  async updateCommunity(communityId: string, communityData: { name: string; logo_url?: string; favicon_url?: string; status: string }) {
     const { data, error } = await supabase
       .from('communities')
       .update(communityData)

@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const { name, logo_url, favicon_url } = await req.json();
+  const { name, logo_url, favicon_url, status = 'active' } = await req.json();
   const access_token = req.cookies.get('sb-access-token')?.value; // or however you store it
 
   const supabase = createClient(
@@ -133,7 +133,9 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 403 });
   if (user.role !== 'superadmin' && user.role !== 'admin') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   // Optionally, restrict admin to only one community (skip for now)
-  const { data, error } = await supabase.from('communities').insert([{ name, logo_url, favicon_url }]).select().single();
+  const { data, error } = await supabase.from('communities').insert([
+    { name, logo_url, favicon_url, status }
+  ]).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data, { status: 201 });
 }

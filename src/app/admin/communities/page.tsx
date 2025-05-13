@@ -109,6 +109,7 @@ export default function AdminCommunitiesPage() {
             name: newCommunity.name,
             logo_url: newCommunity.logo_url,
             favicon_url: newCommunity.favicon_url,
+            status: 'active',
           }),
         });
         if (!res.ok) throw new Error((await res.json()).error || 'Failed to create community');
@@ -118,6 +119,7 @@ export default function AdminCommunitiesPage() {
           name: newCommunity.name,
           logo_url: newCommunity.logo_url,
           favicon_url: newCommunity.favicon_url,
+          status: 'active',
         });
       }
       setNewCommunity({ name: '', logo_url: '', favicon_url: '' });
@@ -189,6 +191,7 @@ export default function AdminCommunitiesPage() {
           name: editCommunity.name,
           logo_url: editCommunity.logo_url,
           favicon_url: editCommunity.favicon_url,
+          status: 'active',
         }
       );
       setEditingId(null);
