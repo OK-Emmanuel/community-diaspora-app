@@ -18,7 +18,7 @@ export default function DynamicBranding({ children }: { children: React.ReactNod
     async function fetchBranding() {
       if (user && user.community_id) {
         try {
-          const res = await fetch(`/api/community?id=eq.${user.community_id}`);
+          const res = await fetch(`/api/community?id=${user.community_id}`);
           if (!res.ok) throw new Error('Failed to fetch community data');
           const data = await res.json();
           if (Array.isArray(data) && data[0]) {

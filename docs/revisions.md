@@ -52,3 +52,10 @@ When users log in they should see the name of their community picked from the co
 If the name of our software must be displayed, it should show as a small print on top (or at the bottom) of the screen.
 [5/7/2025 9:42 AM] Techifice: Okay sir,
 I'll push an update that will correct that in production
+
+
+1. There are two navbars showing in the dashboard,   one is enough - the blue one, let's get rid of the white one which shows diaspora name, sign out and admin panel.
+2.  Improve the design of http://localhost:3000/admin/communities (especially the existing community section with management activities - it should be a table) or look modern
+3. Remove admin panel page - it's just redundant since we have dashboard - all the admin panel features are now in the dashboard
+4. Community is set to inactive by default, it should be active by default.
+
