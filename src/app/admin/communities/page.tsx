@@ -53,19 +53,15 @@ export default function AdminCommunitiesPage() {
         router.push('/login');
         return;
       }
-      if (!isAdmin() && !isSuperAdmin()) {
+      // Only allow superadmins
+      if (!isSuperAdmin()) {
         router.push('/dashboard');
         return;
       }
       setIsLoading(false);
-      if (isSuperAdmin()) {
-        fetchCommunitiesSuperadmin();
-      } else if (isAdmin()) {
-        fetchMyCommunity();
-      }
+      fetchCommunitiesSuperadmin();
     }
-    // eslint-disable-next-line
-  }, [user, authLoading, isAdmin, isSuperAdmin, router]);
+  }, [user, authLoading, isSuperAdmin, router]);
 
   // Load templates from localStorage
   useEffect(() => {
