@@ -227,6 +227,15 @@ export default function AdminCommunitiesPage() {
     setSelectedTemplate(idx);
   };
 
+  const handleStatusChange = async (communityId: string, newStatus: string) => {
+    try {
+      await adminApi.updateCommunity(communityId, { ...communities.find(c => c.id === communityId), status: newStatus });
+      fetchCommunitiesSuperadmin();
+    } catch (err) {
+      setError('Failed to update community status');
+    }
+  };
+
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -386,6 +395,25 @@ export default function AdminCommunitiesPage() {
                               >
                                 Generate Invite Link
                               </button>
+                              {isSuperAdmin() && !editingId && (
+                                c.status === 'active' ? (
+                                  <button
+                                    className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                    onClick={() => handleStatusChange(c.id, 'inactive')}
+                                    type="button"
+                                  >
+                                    Deactivate
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
+                                    onClick={() => handleStatusChange(c.id, 'active')}
+                                    type="button"
+                                  >
+                                    Reactivate
+                                  </button>
+                                )
+                              )}
                               {inviteLinks[c.id] && (
                                 <input
                                   type="text"
