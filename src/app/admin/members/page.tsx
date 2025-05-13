@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import type { Member } from '@/types/database';
+import type { Member, Community } from '@/types/database';
+import { adminApi } from '@/lib/api';
 
 export default function AdminMembersPage() {
+  // All hooks at the top
   const { user, loading: authLoading, isAdmin, isSuperAdmin } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,8 +18,36 @@ export default function AdminMembersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [communities, setCommunities] = useState<Community[]>([]);
   const router = useRouter();
   const membersPerPage = 10;
+
+  // Build a map of communityId to communityName
+  const communityMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    communities.forEach(c => { map[c.id] = c.name; });
+    return map;
+  }, [communities]);
+
+  // Filter members for admin (exclude superadmin)
+  const filteredMembers = useMemo(() => {
+    let list = members;
+    if (isAdmin() && !isSuperAdmin()) {
+      list = list.filter(m => m.role !== 'superadmin');
+    }
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      list = list.filter(member =>
+        member.first_name.toLowerCase().includes(searchLower) ||
+        member.last_name.toLowerCase().includes(searchLower) ||
+        member.email.toLowerCase().includes(searchLower)
+      );
+    }
+    if (roleFilter !== 'all') {
+      list = list.filter(member => member.role === roleFilter);
+    }
+    return list;
+  }, [members, isAdmin, isSuperAdmin, searchQuery, roleFilter]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -25,15 +55,18 @@ export default function AdminMembersPage() {
         router.push('/login');
         return;
       }
-      
       if (!isAdmin() && !isSuperAdmin()) {
         router.push('/dashboard');
         return;
       }
-      
       fetchMembers();
     }
   }, [user, authLoading, isAdmin, isSuperAdmin, router, currentPage, statusFilter, roleFilter]);
+
+  // Fetch all communities on mount
+  useEffect(() => {
+    adminApi.getAllCommunities().then(setCommunities);
+  }, []);
 
   // Fetch members from Supabase
   const fetchMembers = async () => {
@@ -137,14 +170,6 @@ export default function AdminMembersPage() {
       </div>
     );
   }
-
-  // Filter members based on search query
-  const filteredMembers = searchQuery
-    ? members.filter(member => 
-        member.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchQuery.toLowerCase()))
-    : members;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -269,6 +294,9 @@ export default function AdminMembersPage() {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Joined
                     </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Community
+                    </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
@@ -362,6 +390,9 @@ export default function AdminMembersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(member.joined_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {member.community_id ? (communityMap[member.community_id] || 'NULL') : 'NULL'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <Link 

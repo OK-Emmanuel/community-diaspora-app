@@ -59,3 +59,9 @@ I'll push an update that will correct that in production
 3. Remove admin panel page - it's just redundant since we have dashboard - all the admin panel features are now in the dashboard
 4. Community is set to inactive by default, it should be active by default.
 
+---
+1. As a superadmin, I should be able to see the community where a member belongs via the member list page (admin/members)
+2. I should be able to deactivate a community on the community list page (admin/communities)
+3. As a member or admin of a community, I should be able to see my community name in the app 
+4. As a superadmin, I should be able to see all members of all commuunities (done), but my details should not be seen by community members or admin (admin/members). Currently, I can see all members of all communities, and admin can see all members of their community including superadmin - that's what we need to rectify, admin should not see superadmin details.
+
