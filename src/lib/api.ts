@@ -359,23 +359,31 @@ export const adminApi = {
   },
   
   async generateCommunityInvite(communityId: string, userId: string) {
+    console.log(`Generating invite for community ${communityId} by user ${userId}`);
+    
+    // First try using the RPC function
     try {
-      // First try using the RPC function
       const { data, error } = await supabase
         .rpc('generate_community_invite', {
           community_id_param: communityId, 
           user_id_param: userId
         });
       
-      if (error) {
-        console.warn("RPC function generate_community_invite failed:", error.message);
-        throw error; // Let the catch block handle it
+      console.log("RPC attempt response:", { data, error });
+      
+      if (!error && data && data.invite_token) {
+        console.log("Successfully generated token via RPC:", data.invite_token);
+        return data.invite_token;
       }
       
-      return data.invite_token;
+      // If there's an error or no token, fall back to API call
+      console.log("RPC function didn't provide a token, falling back to API");
     } catch (error) {
-      console.log("Falling back to direct API call for invite generation");
+      console.log("RPC function failed, falling back to API:", error);
+    }
       
+    // Direct API call approach
+    try {
       // Get the current session to include auth headers
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -388,20 +396,34 @@ export const adminApi = {
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }
       
-      // If RPC is not available, try direct API call
+      console.log("Making API call to generate invite");
       const response = await fetch('/api/community/invite', {
         method: 'POST',
         headers,
         body: JSON.stringify({ community_id: communityId }),
       });
       
+      console.log("API response status:", response.status);
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Error response data:", errorData);
         throw new Error(errorData.error || 'Failed to generate invite');
       }
       
       const responseData = await response.json();
-      return responseData.invite_token;
+      console.log("API response for invite:", responseData);
+      
+      // Extract the invite token from the response
+      if (responseData && responseData.invite_token) {
+        return responseData.invite_token;
+      } else {
+        console.error("No invite token in response:", responseData);
+        throw new Error("No invite token returned from API");
+      }
+    } catch (fetchError) {
+      console.error("Fetch error:", fetchError);
+      throw fetchError;
     }
   },
   

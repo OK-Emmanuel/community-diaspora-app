@@ -75,12 +75,17 @@ export default function HomePage() {
                   >
                     Login
                   </Link>
-                  <Link 
-                    href="/register" 
-                    className="px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 hover:bg-blue-700 md:text-lg"
-                  >
-                    Register
-                  </Link>
+                  <div className="relative inline-block group">
+                    <Link 
+                      href="/register" 
+                      className="px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 hover:bg-blue-700 md:text-lg"
+                    >
+                      Register
+                    </Link>
+                    <div className="absolute z-10 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-64 p-2 text-xs bg-black bg-opacity-75 text-white rounded">
+                      Registration requires an invitation from a community administrator.
+                    </div>
+                  </div>
                 </div>
               )}
               {!loading && user && (

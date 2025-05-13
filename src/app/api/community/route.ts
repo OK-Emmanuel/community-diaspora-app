@@ -72,6 +72,23 @@ async function extractUserId(req: NextRequest): Promise<string | null> {
 }
 
 export async function GET(req: NextRequest) {
+  // Check if a specific community ID is requested for public access
+  const url = new URL(req.url);
+  const communityId = url.searchParams.get('id');
+  
+  // If a community ID is provided, allow public access to fetch just that community
+  if (communityId) {
+    console.log(`Public request for community ID: ${communityId}`);
+    const { data, error } = await supabase
+      .from('communities')
+      .select('*')
+      .eq('id', communityId);
+      
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
+  }
+  
+  // Otherwise, require authentication for listing communities
   // Extract user ID from the request
   const userId = await extractUserId(req);
   if (!userId) {

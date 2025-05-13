@@ -62,43 +62,67 @@ function RegisterFormContents() {
   useEffect(() => {
     const token = searchParams.get('invite');
     if (token) {
+      console.log('Found invite token:', token);
       setInviteToken(token);
+      
+      // First try to fetch the invite details
       fetch(`/api/community/invite?invite_token=${token}`)
-        .then(res => res.json())
+        .then(res => {
+          console.log('Invite API response status:', res.status);
+          if (!res.ok) {
+            console.error('Invite API error:', res.statusText);
+            throw new Error(`API responded with status ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then(data => {
+          console.log('Invite API response data:', data);
           if (data && data.community_id) {
+            console.log('Setting community ID from invite:', data.community_id);
             setSelectedCommunity(data.community_id);
-            setInviteCommunity(data);
+            setInviteCommunity({
+              ...data,
+              communityName: `Community ID: ${data.community_id.substring(0, 8)}...`
+            });
             setValue('communityId', data.community_id, { shouldValidate: true });
             
-            fetch(`/api/community?id=eq.${data.community_id}`)
-              .then(res => res.json())
+            // Try to get community details
+            fetch(`/api/community?id=${data.community_id}`)
+              .then(res => res.ok ? res.json() : null)
               .then(communityData => {
-                if (communityData && communityData.length > 0) {
-                  setInviteCommunity((prev: any) => ({ ...prev, communityName: communityData[0].name }));
+                if (communityData && Array.isArray(communityData) && communityData.length > 0) {
+                  // Update with the actual community name if available
+                  setInviteCommunity((prev: any) => ({
+                    ...prev,
+                    communityName: communityData[0].name
+                  }));
                 }
               })
-              .catch(err => console.error("Error fetching community details:", err));
+              .catch(communityErr => {
+                console.error('Error fetching community details:', communityErr);
+                // Already using fallback name, so no further action needed
+              });
           } else {
+            console.error('No community_id in invite data:', data);
             setInviteCommunity(null);
             setInviteToken(null);
-            setValue('communityId', '', { shouldValidate: true });
+            setValue('communityId', '', { shouldValidate: false });
+            setSubmitError('Invalid invite: missing community ID');
           }
         })
         .catch(err => {
-          console.error("Error fetching invite details:", err);
+          console.error("Error processing invite:", err);
           setInviteCommunity(null);
           setInviteToken(null);
-          setValue('communityId', '', { shouldValidate: true });
+          setValue('communityId', '', { shouldValidate: false });
+          setSubmitError(`Invalid invite link: ${err.message}. Please contact your community administrator for a valid invite.`);
         });
     } else {
+      // No invite token, show message that registration requires an invite
       setInviteCommunity(null);
       setInviteToken(null);
-      setValue('communityId', '', { shouldValidate: true });
-      fetch('/api/community')
-        .then(res => res.json())
-        .then(data => setCommunities(data))
-        .catch(err => console.error("Error fetching communities:", err));
+      setValue('communityId', '', { shouldValidate: false });
+      setSubmitError('Registration requires a valid community invitation. Please use an invite link provided by your community administrator.');
     }
   }, [searchParams, setValue]);
 
@@ -150,13 +174,58 @@ function RegisterFormContents() {
           </p>
         </div>
         
+        {!inviteToken && (
+          <div className="rounded-md bg-yellow-50 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  Invitation Required
+                </h3>
+                <div className="mt-2 text-sm text-yellow-700">
+                  <p>Registration requires a valid community invitation. Please use an invite link provided by your community administrator.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {inviteCommunity && (
+          <div className="rounded-md bg-green-50 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-green-800">
+                  Valid Invitation
+                </h3>
+                <div className="mt-2 text-sm text-green-700">
+                  <p>You are registering for <strong>{inviteCommunity.communityName || inviteCommunity.community_id}</strong></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {submitError && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">
-                    Registration failed
+                    Registration issue
                   </h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>{submitError}</p>
@@ -248,43 +317,15 @@ function RegisterFormContents() {
                 )}
               </div>
               
-              <div>
-                <label htmlFor="community" className="block text-sm font-medium text-gray-700">
-                  Community
-                </label>
-                {inviteCommunity ? (
-                  <input
-                    id="communityDisplay"
-                    type="text"
-                    value={inviteCommunity.communityName || inviteCommunity.community_id}
-                    readOnly
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
-                  />
-                ) : (
-                  <select
-                    id="community"
-                    {...register('communityId')}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="" disabled>Select a community</option>
-                    {communities.map((community) => (
-                      <option key={community.id} value={community.id}>
-                        {community.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                {errors.communityId && (
-                  <p className="mt-1 text-sm text-red-600">{errors.communityId.message}</p>
-                )}
-              </div>
+              {/* Hidden input for community ID */}
+              <input type="hidden" {...register('communityId')} />
             </div>
           </div>
 
           <div>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !inviteToken}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
               {isSubmitting ? 'Creating account...' : 'Create account'}

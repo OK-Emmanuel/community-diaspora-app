@@ -133,10 +133,34 @@ export default function AdminCommunitiesPage() {
       // Update to use adminApi
       const inviteToken = await adminApi.generateCommunityInvite(communityId, user?.id || '');
       
+      console.log("Generated invite token:", inviteToken);
+      
+      if (!inviteToken) {
+        throw new Error("Failed to generate invite token");
+      }
+      
+      // Add a short delay to ensure the database operation completes
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Verify the invite was created in database
+      try {
+        const verifyResponse = await fetch(`/api/community/invite?invite_token=${inviteToken}`);
+        const verifyData = await verifyResponse.json();
+        console.log("Verification response:", verifyData);
+        if (!verifyResponse.ok) {
+          console.error("Warning: Created invite token not found in database");
+        }
+      } catch (verifyErr) {
+        console.error("Failed to verify invite token:", verifyErr);
+      }
+      
       // Construct invite link (assuming /register?invite=...)
       const inviteUrl = `${window.location.origin}/register?invite=${inviteToken}`;
+      console.log("Generated invite URL:", inviteUrl);
+      
       setInviteLinks((prev) => ({ ...prev, [communityId]: inviteUrl }));
     } catch (err: any) {
+      console.error("Error generating invite:", err);
       setInviteLinks((prev) => ({ ...prev, [communityId]: err.message }));
     }
   };
