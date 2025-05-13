@@ -51,8 +51,8 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
         return;
       }
       
-      // Only allow superadmins to view this page
-      if (!isSuperAdmin()) {
+      // Allow superadmins or admins of the current community
+      if (!isSuperAdmin() && !(isAdmin() && user.community_id === communityId)) {
         router.push('/dashboard');
         return;
       }

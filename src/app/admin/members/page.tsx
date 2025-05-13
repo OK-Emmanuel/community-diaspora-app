@@ -177,14 +177,17 @@ export default function AdminMembersPage() {
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Member Management</h1>
-            <div className="flex space-x-4">
+            
+            {/* Logic to add member will be specific for each communty instead of this generic page */}
+
+            {/* <div className="flex space-x-4">
               <Link 
                 href="/admin/members/add" 
                 className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
               >
                 Add Member
               </Link>
-            </div>
+            </div> */}
           </div>
         </div>
       </header>
