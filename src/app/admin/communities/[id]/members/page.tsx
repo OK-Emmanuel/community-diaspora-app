@@ -6,14 +6,14 @@ import { useAuth } from '@/lib/auth';
 import { adminApi } from '@/lib/api';
 import { membersApi } from '@/lib/api';
 import Link from 'next/link';
-import type { Member } from '@/types/database';
+import type { Member, NonFinancialMember } from '@/types/database';
 import { Dialog, Transition } from '@headlessui/react';
 import { supabase } from '@/lib/supabase';
 
 export default function CommunityMembersPage({ params }: { params: { id: string } }) {
   const { id: communityId } = params;
   const { user, loading: authLoading, isAdmin, isSuperAdmin } = useAuth();
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<(Member & { dependants?: NonFinancialMember[] })[]>([]);
   const [community, setCommunity] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +46,8 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [addSuccess, setAddSuccess] = useState<string | null>(null);
+
+  const [dependantModal, setDependantModal] = useState<{ open: boolean; dependants: NonFinancialMember[]; parentName: string }>({ open: false, dependants: [], parentName: '' });
 
   useEffect(() => {
     if (!authLoading) {
@@ -84,18 +86,46 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
   const fetchCommunityMembers = async () => {
     try {
       setIsLoading(true);
+      // Fetch all members and their dependants
       const data = await adminApi.getMembersByCommunity(communityId);
-      setMembers(Array.isArray(data) ? data : []);
+      // Flatten dependants into the main list
+      let allMembers: (Member & { dependants?: NonFinancialMember[] })[] = [];
+      let dependantsMap: Record<string, NonFinancialMember[]> = {};
+      if (Array.isArray(data)) {
+        data.forEach((member: any) => {
+          if (member.role === 'financial') {
+            dependantsMap[member.id] = Array.isArray(member.non_financial_members) ? member.non_financial_members : [];
+            allMembers.push({ ...member, dependants: dependantsMap[member.id] });
+            // Add each dependant as a row too
+            dependantsMap[member.id].forEach((dep: NonFinancialMember) => {
+              allMembers.push({
+                ...dep,
+                role: 'non_financial',
+                status: dep.status,
+                joined_date: dep.created_at,
+                email: dep.email || '',
+                first_name: dep.first_name,
+                last_name: dep.last_name,
+                id: dep.id,
+                profile_image_url: undefined,
+              });
+            });
+          } else {
+            allMembers.push(member);
+          }
+        });
+      }
+      setMembers(allMembers);
       
       // Calculate statistics
       if (Array.isArray(data)) {
-        const totalMembers = data.length;
-        const admins = data.filter(m => m.role === 'admin').length;
-        const financial = data.filter(m => m.role === 'financial').length;
-        const nonFinancial = data.filter(m => m.role === 'non_financial').length;
-        const active = data.filter(m => m.status === 'active').length;
-        const inactive = data.filter(m => m.status === 'inactive').length;
-        const pending = data.filter(m => m.status === 'pending').length;
+        const totalMembers = allMembers.length;
+        const admins = allMembers.filter(m => m.role === 'admin').length;
+        const financial = allMembers.filter(m => m.role === 'financial').length;
+        const nonFinancial = allMembers.filter(m => m.role === 'non_financial').length;
+        const active = allMembers.filter(m => m.status === 'active').length;
+        const inactive = allMembers.filter(m => m.status === 'inactive').length;
+        const pending = allMembers.filter(m => m.status === 'pending').length;
         
         setStats({
           total: totalMembers,
@@ -381,6 +411,9 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Joined
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Dependants
+                  </th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -443,6 +476,20 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(member.joined_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {member.role === 'financial' ? (
+                          (member.dependants && member.dependants.length > 0) ? (
+                            <button
+                              className="text-blue-600 hover:underline focus:outline-none"
+                              onClick={() => setDependantModal({ open: true, dependants: member.dependants!, parentName: `${member.first_name} ${member.last_name}` })}
+                            >
+                              {member.dependants.length}
+                            </button>
+                          ) : (
+                            '0'
+                          )
+                        ) : member.role === 'non_financial' ? 'N/A' : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
@@ -633,6 +680,72 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
                         </button>
                       </div>
                     </form>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
+
+      {/* Dependants Modal */}
+      <Transition.Root show={dependantModal.open} as={Fragment}>
+        <Dialog as="div" className="relative z-20" onClose={() => setDependantModal(m => ({ ...m, open: false }))}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100"
+            leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+          <div className="fixed inset-0 z-20 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300" enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200" leaveFrom="opacity-100 translate-y-0 sm:scale-100" leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <div>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                      Dependants of {dependantModal.parentName}
+                    </h3>
+                    {dependantModal.dependants.length === 0 ? (
+                      <div className="text-gray-500 text-center">No dependants found.</div>
+                    ) : (
+                      <ul className="divide-y divide-gray-200">
+                        {dependantModal.dependants.map(dep => (
+                          <li key={dep.id} className="py-2">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                              <div>
+                                <div className="font-medium text-gray-900">{dep.first_name} {dep.last_name}</div>
+                                <div className="text-sm text-gray-500">Relationship: {dep.relationship}</div>
+                                {dep.date_of_birth && (
+                                  <div className="text-sm text-gray-500">DOB: {new Date(dep.date_of_birth).toLocaleDateString()}</div>
+                                )}
+                              </div>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                dep.status === 'active'
+                                  ? 'bg-green-100 text-green-800'
+                                  : dep.status === 'pending'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {dep.status.charAt(0).toUpperCase() + dep.status.slice(1)}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        onClick={() => setDependantModal(m => ({ ...m, open: false }))}
+                      >
+                        Close
+                      </button>
+                    </div>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
