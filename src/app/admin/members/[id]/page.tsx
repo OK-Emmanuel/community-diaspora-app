@@ -9,7 +9,7 @@ import type { Member, NonFinancialMember } from '@/types/database';
 
 export default function MemberDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin, isSuperAdmin } = useAuth();
   const [member, setMember] = useState<Member | null>(null);
   const [dependents, setDependents] = useState<NonFinancialMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,14 +23,14 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
         return;
       }
       
-      if (!isAdmin()) {
+      if (!(isAdmin() || isSuperAdmin())) {
         router.push('/dashboard');
         return;
       }
       
       fetchMemberDetails();
     }
-  }, [id, user, authLoading, isAdmin, router]);
+  }, [id, user, authLoading, isAdmin, isSuperAdmin, router]);
 
   const fetchMemberDetails = async () => {
     try {

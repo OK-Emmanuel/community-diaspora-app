@@ -53,7 +53,6 @@ export const membersApi = {
       .insert([dependent])
       .select()
       .single();
-    
     if (error) throw error;
     return data;
   }

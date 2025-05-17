@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { adminApi } from '@/lib/api';
+import { membersApi } from '@/lib/api';
 import Link from 'next/link';
 import type { Member } from '@/types/database';
 import { Dialog, Transition } from '@headlessui/react';
@@ -39,6 +40,8 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
     password: '',
     role: 'financial',
     status: 'active',
+    financial_member_id: '',
+    relationship: '',
   });
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
@@ -174,6 +177,20 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
       return;
     }
     
+    // Validation for dependants
+    if (addForm.role === 'non_financial') {
+      if (!addForm.financial_member_id) {
+        setAddError('Please select a financial member (parent) for this dependant.');
+        setAddLoading(false);
+        return;
+      }
+      if (!addForm.relationship) {
+        setAddError('Please specify the relationship for this dependant.');
+        setAddLoading(false);
+        return;
+      }
+    }
+    
     console.log("Auth check before adding member:", { 
       loggedIn: !!session, 
       userId: session?.user?.id,
@@ -181,9 +198,23 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
     });
     
     try {
-      await adminApi.addMember({ ...addForm, community_id: communityId });
-      setAddSuccess('Member added successfully!');
-      setAddForm({ first_name: '', last_name: '', email: '', password: '', role: 'financial', status: 'active' });
+      if (addForm.role === 'non_financial') {
+        // Add dependant (non-financial member)
+        await membersApi.addDependent({
+          member_id: addForm.financial_member_id,
+          first_name: addForm.first_name,
+          last_name: addForm.last_name,
+          email: addForm.email,
+          relationship: addForm.relationship,
+          status: addForm.status as Member['status'],
+        });
+        setAddSuccess('Dependant added successfully!');
+      } else {
+        // Add regular member
+        await adminApi.addMember({ ...addForm, community_id: communityId });
+        setAddSuccess('Member added successfully!');
+      }
+      setAddForm({ first_name: '', last_name: '', email: '', password: '', role: 'financial', status: 'active', financial_member_id: '', relationship: '' });
       setShowAddModal(false);
       fetchCommunityMembers();
     } catch (err: any) {
@@ -537,9 +568,41 @@ export default function CommunityMembersPage({ params }: { params: { id: string 
                         >
                           <option value="admin">Admin</option>
                           <option value="financial">Financial</option>
-                          <option value="non_financial">Non-Financial</option>
+                          <option value="non_financial">Non-Financial (Dependant)</option>
                         </select>
                       </div>
+                      {/* If role is non-financial, show financial member dropdown and relationship */}
+                      {addForm.role === 'non_financial' && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Select Financial Member (Parent)</label>
+                            <select
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                              value={addForm.financial_member_id}
+                              onChange={e => setAddForm(f => ({ ...f, financial_member_id: e.target.value }))}
+                              required
+                            >
+                              <option value="">-- Select Financial Member --</option>
+                              {members.filter(m => m.role === 'financial').map(m => (
+                                <option key={m.id} value={m.id}>
+                                  {m.first_name} {m.last_name} ({m.email})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Relationship to Financial Member</label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                              value={addForm.relationship}
+                              onChange={e => setAddForm(f => ({ ...f, relationship: e.target.value }))}
+                              required
+                              placeholder="e.g. Child, Spouse, Parent"
+                            />
+                          </div>
+                        </>
+                      )}
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Status</label>
                         <select
